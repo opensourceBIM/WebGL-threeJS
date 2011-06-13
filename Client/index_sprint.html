@@ -1,0 +1,121 @@
+<html>
+<head>
+    <title>BIM Web Client</title>
+    <script src="jquery-1.6.1.min.js"></script>
+    <script>
+        var console = {log: function(msg) {}, error: function(msg) {}};
+    </script>
+    <script src="Three.js"></script>
+    <script src="extras/io/JSONLoader.js"></script>
+    <script src="examples/js/RequestAnimationFrame.js"></script>
+    <script>
+        var camera, scene, renderer, geometry, material, mesh;
+        $(document).ready(function() {
+            init();
+            animate();
+        });
+
+        function init() {
+
+            var radius = 6371;
+            renderer = new THREE.WebGLRenderer();
+            renderer.sortObjects = false;
+
+            var width = window.innerWidth;
+            var height = window.innerHeight;
+            renderer.setSize(width, height);
+
+            camera = new THREE.TrackballCamera({
+
+                        fov: 50,
+                        aspect: window.innerWidth / window.innerHeight,
+                        near: 1,
+                        far: 100000,
+
+                        rotateSpeed: 1.0,
+                        zoomSpeed: 1.2,
+                        panSpeed: 0.2,
+
+                        noZoom: false,
+                        noPan: false,
+
+                        staticMoving: false,
+                        dynamicDampingFactor: 0.3,
+
+                        minDistance: 0.1,
+                        maxDistance: 100000,
+
+                        keys: [ 65, 83, 68 ], // [ rotateKey, zoomKey, panKey ],
+
+                        domElement: renderer.domElement
+
+                    });
+
+            camera.up = new THREE.Vector3( 0, 0, 1 );
+            camera.position = new THREE.Vector3(1, 1, 1);
+            camera.target.position = new THREE.Vector3(0, 0, 0);
+
+            scene = new THREE.Scene();
+
+            var light1 = new THREE.DirectionalLight(0xffffff, 2);
+            light1.position.x = .5;
+            light1.position.y = 1;
+            light1.position.z = 2;
+            light1.position.normalize();
+            scene.addLight(light1);
+
+            var light2 = new THREE.DirectionalLight(0x555555, 1);
+            light2.position.x = - 2;
+            light2.position.y = - 1;
+            light2.position.z = - .5;
+            light2.position.normalize();
+            scene.addLight(light2);
+
+            material = new THREE.MeshPhongMaterial({ color: 0xFF0000 });
+
+            var loader = new THREE.JSONLoader(true);
+            loader.load({ model: "house.js", callback: function(geometry) {
+                        mesh = new THREE.Mesh(geometry, material);
+                        mesh.doubleSided = false;
+
+                        geometry.computeBoundingBox();
+
+                        var bb = geometry.boundingBox;
+                        var ext = {x: bb.x[1] - bb.x[0], y: bb.y[1] - bb.y[0], z: bb.z[1] - bb.z[0]};
+
+                        // center mesh
+                        mesh.position.x = ext.x * -.5 - bb.x[0];
+                        mesh.position.y = ext.y * -.5 - bb.y[0];
+                        mesh.position.z = ext.z * -.5 - bb.z[0];
+
+                        var maxExtent = Math.max.apply(Math, [ext.x, ext.y, ext.z]);
+                        camera.position =  new THREE.Vector3(maxExtent, maxExtent, maxExtent);
+
+                        // TODO: adjust clipping
+
+                        scene.addObject(mesh);
+
+                    } });
+
+            camera.updateProjectionMatrix();
+            camera.screen.width = width;
+            camera.screen.height = height;
+
+            document.body.appendChild(renderer.domElement);
+
+        }
+
+        function animate() {
+            // Include examples/js/RequestAnimationFrame.js for cross-browser compatibility.
+            requestAnimationFrame(animate);
+            render();
+        }
+
+        function render() {
+            renderer.render(scene, camera);
+        }
+    </script>
+</head>
+<body style="background-color: #CCEEEE;">
+</body>
+</html>
