@@ -1,0 +1,116 @@
+<html>
+<head>
+    <title>BIM Web Client</title>
+    <style type="text/css">
+        body {
+            background-color: #CCEEEE;
+            padding: 0; margin: 0;
+        }
+        #viewerContainer {
+            height: 450px;
+            width: 600px;
+        }
+        .boxed {
+            background-color: white;
+            border: 1px solid black;
+            padding: 5px;
+        }
+        p, div {
+            margin: 10px;
+        }
+		form {
+			display: inline;
+		}
+    </style>
+    <script src="jquery-1.6.1.min.js"></script>
+    <script>
+        if (console == undefined) {
+            var console = {
+                log: function(msg) {
+                },
+                error: function(msg) {
+                }
+            };
+        }
+    </script>
+    <script src="Three.js"></script>
+    <script src="RequestAnimationFrame.js"></script>
+    <script src="ThreeJsViewer.js"></script>
+    <script>
+		function revisionUpdate(poid) {
+			$('#roids').empty();
+			$.ajax({url: '/rest/getAllRevisionsOfProject', data: 'poid='+poid, success: function(data){
+				var select = $('#roids');
+				$(data).find('sRevision').each(function(){
+					var revision = $(this);
+					var value = revision.find('oid').text();
+					var label = revision.find('id').text();
+					$('<option />').val(value).text(label).appendTo(select);
+				})
+			}});		
+		}
+		function projectUpdate() {
+			$('#revision').show();
+			$('#poids').empty();
+			$.ajax({url: '/rest/getAllProjects', success: function(data) {
+				var select = $('#poids');
+				$(data).find('sProject').each(function(){
+					var project = $(this);
+					var value = project.find('oid').text();
+					var label = project.find('name').text();
+					$('<option />').val(value).text(label).appendTo(select);
+				});
+				revisionUpdate(select.val());
+			}});
+		}
+		var viewer
+        $(document).ready(function() {
+			viewer = new ThreeJsViewer();
+			viewer.init($('#viewerContainer'));
+			viewer.onClick = function(id) {
+				$('#selection').html(id);
+			};
+			viewer.animate();
+            $('#login').submit(function() {
+                $.ajax({
+					url: '/rest/login',
+					data: $('#login').serialize(),
+					success: projectUpdate
+				});
+                return false;
+            });
+            $('#poids').change(function() {
+				revisionUpdate($(this).val());
+            });
+			$('#revision').submit(function(){
+				$.ajax({
+					url: '/rest/download',
+					data: 'roid='+$(this.roids).val()+'&resultType=THREEJS',
+					success: function(data) {
+						viewer.clearModel();
+						viewer.loadModel('/download?longActionId=' + data);
+					}
+				});
+				return false;
+			});
+        });
+    </script>
+</head>
+<body>
+<div>
+<form id="login" class="boxed" style="margin-right: 20px;">
+    User <input name="username" type="text" />
+	PW <input name="password" type="password" />
+    <input type="submit" value="Login"/>
+</form>
+<form id="revision" class="boxed" style="display: none;">
+    <select id="poids"></select>
+    <select id="roids"></select>
+	<input type="submit" value="Show" />
+</form>
+</div>
+<div id="viewerContainer"></div>
+<p class="boxed">
+    selected: <span id="selection">nothing</span></p>
+</body>
+</html>

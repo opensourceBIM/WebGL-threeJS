@@ -4,10 +4,10 @@ function ThreeJsViewer(){
         this.UNSELECTED_COLOR = 0xFF0000;
         this.meshes = {};
 
-        this.init = function(modelUrl) {
+        this.init = function(container) {
 
             this.projector = new THREE.Projector();
-            this.size = {width: window.innerWidth - 1, height: window.innerHeight - 1}
+            this.size = {width: container.width(), height: container.height()};
 
             this.renderer = new THREE.WebGLRenderer();
             this.renderer.sortObjects = false;
@@ -45,6 +45,8 @@ function ThreeJsViewer(){
             this.camera.screen.height = this.size.height;
 
             this.scene = new THREE.Scene();
+            this.root = new THREE.Object3D();
+            this.scene.addObject(this.root);
 
             var light1 = new THREE.DirectionalLight(0xffffff, 2);
             light1.position.x = .5;
@@ -60,10 +62,14 @@ function ThreeJsViewer(){
             light2.position.normalize();
             this.scene.addLight(light2);
 
+            container.click(this.onMouseDown.bind(this));
+            container.append(this.renderer.domElement);
+			this.container = container;
+            this.onclick = function(){};
+        };
 
+		this.loadModel = function(modelUrl){
             var geometryLoader = new THREE.JSONLoader(true);
-            this.root = new THREE.Object3D();
-            this.scene.addObject(this.root);
 
             var callback = function(partId) { return function(geometry) {
                 var material = new THREE.MeshPhongMaterial({ color: this.UNSELECTED_COLOR });
@@ -94,12 +100,13 @@ function ThreeJsViewer(){
         	}.bind(this);
 	        geometryLoader.onLoadStart();
 	        worker.postMessage( new Date().getTime() );
-
-            this.renderer.domElement.addEventListener('mousedown', this.onMouseDown.bind(this), false);
-            document.body.appendChild(this.renderer.domElement);
-            this.onclick = function(){};
-        };
-
+		};
+		this.clearModel = function(){
+			this.scene.removeChild(this.root);
+            this.root = new THREE.Object3D();
+            this.scene.addObject(this.root);
+			this.meshes = {};
+		};
         this.computeBoundingBox = function(){
             this.root.children[0].geometry.computeBoundingBox();
             var initialBB = this.root.children[0].geometry.boundingBox;
@@ -119,8 +126,8 @@ function ThreeJsViewer(){
             event.preventDefault();
 
             var mouse = new THREE.Vector3(0, 0, 0);
-            mouse.x = ( event.clientX / this.size.width ) * 2 - 1;
-            mouse.y = - ( event.clientY / this.size.height ) * 2 + 1;
+            mouse.x = (event.pageX - this.container.offset().left) / this.size.width * 2 - 1; // ( event.clientX / this.size.width ) * 2 - 1;
+            mouse.y = - (event.pageY - this.container.offset().top) / this.size.height * 2 + 1; // - ( event.clientY / this.size.height ) * 2 + 1;
 
             this.projector.unprojectVector(mouse, this.camera);
 
