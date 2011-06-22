@@ -81,10 +81,11 @@ public class JSONModelFormat2Serializer extends BimModelSerializer {
 			PrintWriter out = new PrintWriter(outputStream);
 			out.println("var model = [");
 			
-			for(SetGeometryResult geometry : geometries) {
-				out.println("{");
+			for(int i=0; i<geometries.size(); i++) {
+				SetGeometryResult geometry = geometries.get(i);
+				out.println(i == 0 ? "{": ",{");
 				writeGeometry(out, geometry);
-				out.println("},");
+				out.println("}");
 			}
 			
 			out.println("");
@@ -103,14 +104,10 @@ public class JSONModelFormat2Serializer extends BimModelSerializer {
 	
 	private void writeGeometry(PrintWriter out, SetGeometryResult geometry) {
 		out.println("id : '" + geometry.getGuid() +  "', ");
+		out.println("type : '" + geometry.getEntityType() +  "', ");
 		out.println("geometry : {");
 		out.println(" 'version' : 2, ");
-		out.println("  'materials': [ {" +
-		        		"\"DbgColor\" : 0xeeeeee," +
-		        		"\"DbgIndex\" : 0," + 
-		        		"\"DbgName\" : \"dummy\"," +
-		        		"\"colorDiffuse\" : [ 1, 0, 0 ]" + 
-		    		"} ],");
+		out.println("  'materials': [],");
 		out.print("  'vertices': [ ");
 
 		List<Float> vertices = geometry.getBinaryVertexBuffer().getVertices();
@@ -213,19 +210,14 @@ public class JSONModelFormat2Serializer extends BimModelSerializer {
 		List<SetGeometryResult> geometryList = new ArrayList<SetGeometryResult>();
 		//Class[] eClasses = new Class[] { IfcSlab.class, IfcRoof.class, IfcWall.class, IfcWallStandardCase.class, IfcWindow.class, IfcDoor.class, IfcColumn.class, IfcRamp.class,
 		//				IfcStair.class, IfcStairFlight.class, IfcRailing.class };
-		 Class[] eClasses = new Class[] { IfcWallStandardCase.class, IfcWall.class, IfcWindow.class, IfcDoor.class };
+		Class[] eClasses = new Class[] { IfcWallStandardCase.class, IfcWall.class, IfcWindow.class, IfcDoor.class, IfcSlab.class, IfcColumn.class };
 
 		try {
 			for (Class<? extends EObject> eClass : eClasses) {
-				int i=0;
 				for (Object object : model.getAll(eClass)) {
-					i++;
-		//			if (i < 2) { continue; }
 					IfcRoot ifcRoot = (IfcRoot) object;
 					SetGeometryResult geometry = getGeometry(ifcRoot);
-					if (geometry != null) { geometryList.add(geometry); }
-			//		if (i == 13) { break; }
-					
+					if (geometry != null) { geometryList.add(geometry); }					
 				}
 			}
 		}  catch (SerializerException e) {
@@ -269,8 +261,9 @@ public class JSONModelFormat2Serializer extends BimModelSerializer {
 					binaryVertexBuffer.addNormal(geometry.getNormal(i + 1));
 					binaryVertexBuffer.addNormal(geometry.getNormal(i + 2));
 				}
-				String guid = Long.toString(ifcRootObject.getOid()); // TODO
-				return new SetGeometryResult(guid, nrIndices * 3, geometry.getNrVertices(), binaryIndexBuffer, binaryVertexBuffer);
+				String guid =  ((IfcRoot)ifcRootObject).getGlobalId().getWrappedValue(); // "TODO" + Long.toString(ifcRootObject.getOid()); // TODO
+				String entityType = ifcRootObject.eClass().getName().toUpperCase();
+				return new SetGeometryResult(entityType, guid, nrIndices * 3, geometry.getNrVertices(), binaryIndexBuffer, binaryVertexBuffer);
 			}
 		} finally {
 			model.close();

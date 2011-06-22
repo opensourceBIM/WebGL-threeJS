@@ -125,14 +125,6 @@ public class EmfSerializerFactory {
 				enabled.add(upperCase);
 			}
 		}
-		register(new ResultType("JSON_MODEL_FORMAT_2", "JSON Model Formal 2.0", "js", "appliction/collada", UseInCheckout.USE_NOT_IN_CHECKOUT, UserType.USER_TYPE, Type.MULTIPLE, DefaultSelected.FALSE, enabled.contains("JSON_MODEL_FORMAT_2")), new EmfSerializerCreator() {
-			@Override
-			public EmfSerializer create(Project project, User user, IfcModel model, String fileName) throws SerializerException {
-				JSONModelFormat2Serializer jsonModelFormat2Serializer = new JSONModelFormat2Serializer();				
-				jsonModelFormat2Serializer.init(project, user, fileName, model, fieldIgnoreMap, schemaDefinition, ifcEngineFactory);
-				return jsonModelFormat2Serializer;
-			}
-		});
 		register(new ResultType("IFC", "IFC2x3", "ifc", "application/ifc", UseInCheckout.USE_IN_CHECKOUT, UserType.USER_TYPE, Type.MULTIPLE, DefaultSelected.TRUE, enabled.contains("IFC")), new EmfSerializerCreator(){
 			@Override
 			public EmfSerializer create(Project project, User user, IfcModel model, String fileName) {
@@ -187,6 +179,15 @@ public class EmfSerializerFactory {
 				O3dJsonSerializer o3dJsonSerializer = new O3dJsonSerializer();
 				o3dJsonSerializer.init(project, user, fileName, model, fieldIgnoreMap, schemaDefinition, ifcEngineFactory);
 				return o3dJsonSerializer;
+			}
+		});
+		register(new ResultType("THREEJS", "Three.js viewer", "js", "application/json", UseInCheckout.USE_NOT_IN_CHECKOUT, UserType.USER_TYPE, Type.MULTIPLE, DefaultSelected.FALSE, enabled.contains("THREEJS")), new EmfSerializerCreator() {
+			@Override
+			public EmfSerializer create(Project project, User user, IfcModel model, String fileName) throws SerializerException {
+				//fileName = "wall.js";
+				JSONModelFormat2Serializer JsonModelFormat2Serializer = new JSONModelFormat2Serializer();
+				JsonModelFormat2Serializer.init(project, user, fileName, model, fieldIgnoreMap, schemaDefinition, ifcEngineFactory);
+				return JsonModelFormat2Serializer;
 			}
 		});
 		register(new ResultType("OBJECT_INFO", "Object Info", "html", "text/html", UseInCheckout.USE_NOT_IN_CHECKOUT, UserType.USER_TYPE, Type.SINGLE, DefaultSelected.FALSE, enabled.contains("OBJECT_INFO")), new EmfSerializerCreator() {
