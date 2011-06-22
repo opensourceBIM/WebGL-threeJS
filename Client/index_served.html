@@ -68,7 +68,20 @@
 			viewer = new ThreeJsViewer();
 			viewer.init($('#viewerContainer'));
 			viewer.onClick = function(id) {
-				$('#selection').html(id);
+				if (id==null) {
+					$('#selection').html('nothing');
+					return;
+				}
+				$.ajax({
+					url: '/rest/getDataObjectByGuid',
+					data: 'roid='+$('#roids').val()+'&guid='+id,
+					success: function(data){
+						var jqData = $(data);
+						var name = jqData.find('name').text();
+						var type = jqData.find('type').text();
+						$('#selection').html(id + ' - ' + name + ' - ' + type);
+					}
+				});
 			};
 			viewer.animate();
             $('#login').submit(function() {

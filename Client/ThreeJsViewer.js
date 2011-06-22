@@ -144,7 +144,7 @@ function ThreeJsViewer(){
                 if (this.selected) this.selected.materials[0].color.setHex(this.UNSELECTED_COLOR);
                 this.selected = null;
             }
-            this.onClick(this.selected ? this.meshes[this.selected.geometry.id] : 'nothing');
+            this.onClick(this.selected ? this.meshes[this.selected.geometry.id] : null);
         };
 
         this.animate = function() {
