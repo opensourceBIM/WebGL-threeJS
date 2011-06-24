@@ -1,0 +1,30 @@
+<html>
+<head>
+    <title>BIM Web Client</title>
+    <script src="jquery-1.6.1.min.js"></script>
+    <script>
+        if (console == undefined) {
+            var console = {
+                log: function(msg) {},
+                error: function(msg) {}
+            };
+        }
+    </script>
+    <script src="Three.js"></script>
+    <script src="RequestAnimationFrame.js"></script>
+    <script src="ThreeJsViewer.js"></script>
+    <script>
+        $(document).ready(function() {
+            var viewer = new ThreeJsViewer();
+            viewer.init('floor.js');
+            viewer.onClick = function(id){
+                $('#selection').html(id);
+            };
+            viewer.animate();
+        });
+    </script>
+</head>
+<body style="background-color: #CCEEEE; padding: 0; margin: 0;">
+<p style="position: absolute; top: 10px; left: 10px; background-color: white; border: 1px solid black; padding: 5px;">selected: <span id="selection">nothing</span></p>
+</body>
+</html>
