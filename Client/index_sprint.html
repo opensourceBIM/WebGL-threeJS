@@ -16,9 +16,10 @@
     <script>
         $(document).ready(function() {
             var viewer = new ThreeJsViewer();
-            viewer.init('floor.js');
+            viewer.init($('#viewer'));
+            viewer.loadModel('floor.js');
             viewer.onClick = function(id){
-                $('#selection').html(id);
+                $('#selection').html(id ? id : 'nothing');
             };
             viewer.animate();
         });
@@ -26,5 +27,6 @@
 </head>
 <body style="background-color: #CCEEEE; padding: 0; margin: 0;">
 <p style="position: absolute; top: 10px; left: 10px; background-color: white; border: 1px solid black; padding: 5px;">selected: <span id="selection">nothing</span></p>
+<div id="viewer" style="width: 100%; height: 100%"></div>
 </body>
 </html>
