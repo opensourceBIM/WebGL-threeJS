@@ -41,12 +41,9 @@
 			$('#roids').empty();
 			$.ajax({url: '/rest/getAllRevisionsOfProject', data: 'poid='+poid, success: function(data){
 				var select = $('#roids');
-				$(data).find('sRevision').each(function(){
-					var revision = $(this);
-					var value = revision.find('oid').text();
-					var label = revision.find('id').text();
-					$('<option />').val(value).text(label).appendTo(select);
-				})
+				$.each(data.sRevisions, function(i, revision){
+					$('<option />').val(revision.oid).text(revision.id).appendTo(select);
+				});
 			}});		
 		}
 		function projectUpdate() {
@@ -54,11 +51,8 @@
 			$('#poids').empty();
 			$.ajax({url: '/rest/getAllProjects', success: function(data) {
 				var select = $('#poids');
-				$(data).find('sProject').each(function(){
-					var project = $(this);
-					var value = project.find('oid').text();
-					var label = project.find('name').text();
-					$('<option />').val(value).text(label).appendTo(select);
+				$.each( data.sProjects, function(i, project) {
+					$('<option />').val(project.oid).text(project.name).appendTo(select);
 				});
 				revisionUpdate(select.val());
 			}});
@@ -76,10 +70,7 @@
 					url: '/rest/getDataObjectByGuid',
 					data: 'roid='+$('#roids').val()+'&guid='+id,
 					success: function(data){
-						var jqData = $(data);
-						var name = jqData.find('name').text();
-						var type = jqData.find('type').text();
-						$('#selection').html(id + ' - ' + name + ' - ' + type);
+						$('#selection').html(id + ' - ' + data.sDataObject.name + ' - ' + data.sDataObject.type);
 					}
 				});
 			};
