@@ -41,7 +41,7 @@
 			$('#roids').empty();
 			$.ajax({url: '/rest/getAllRevisionsOfProject', data: 'poid='+poid, success: function(data){
 				var select = $('#roids');
-				$.each(data.sRevisions, function(i, revision){
+				$.each(data.sRevision, function(i, revision){
 					$('<option />').val(revision.oid).text(revision.id).appendTo(select);
 				});
 			}});		
@@ -51,7 +51,7 @@
 			$('#poids').empty();
 			$.ajax({url: '/rest/getAllProjects', success: function(data) {
 				var select = $('#poids');
-				$.each( data.sProjects, function(i, project) {
+				$.each( data.sProject, function(i, project) {
 					$('<option />').val(project.oid).text(project.name).appendTo(select);
 				});
 				revisionUpdate(select.val());
@@ -78,6 +78,8 @@
             $('#login').submit(function() {
                 $.ajax({
 					url: '/rest/login',
+                    username: $('#login input[name=username]').val(),
+                    password: $('#login input[name=password]').val(),
 					data: $('#login').serialize(),
 					success: projectUpdate
 				});
