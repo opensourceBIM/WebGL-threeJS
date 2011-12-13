@@ -25,24 +25,25 @@ public class JSONModelFormat2SerializerPlugin implements SerializerPlugin {
 	public String getDescription() {
 		return "JSONModelFormat2Serializer"; // TODO: better names and descriptions
 	}
-
-	@Override
-	public String getName() {
-		return getClass().getName();
-	}
+	
+	
+//	@Override 
+//	public String getName() {
+//		return getClass().getName();
+//	}
 
 	@Override
 	public String getVersion() {
 		return "0.1";
 	}
 
-	@Override
-	public Set<Class<? extends Plugin>> getRequiredPlugins() {
-		Set<Class<? extends Plugin>> set = new HashSet<Class<? extends Plugin>>();
-		set.add(SchemaPlugin.class);
-		set.add(IfcEnginePlugin.class);
-		return set;
-	}
+//	@Override
+//	public Set<Class<? extends Plugin>> getRequiredPlugins() {
+//		Set<Class<? extends Plugin>> set = new HashSet<Class<? extends Plugin>>();
+//		set.add(SchemaPlugin.class);
+//		set.add(IfcEnginePlugin.class);
+//		return set;
+//	}
 
 	@Override
 	public void init(PluginManager pluginManager) throws PluginException {
@@ -53,7 +54,7 @@ public class JSONModelFormat2SerializerPlugin implements SerializerPlugin {
 
 	@Override
 	public String getDefaultSerializerName() {
-		return "THREEJS";
+		return "ThreeJs";
 	}
 
 	@Override
