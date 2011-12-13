@@ -3,9 +3,9 @@ package org.bimserver.serializers.json;
 import org.bimserver.emf.IdEObject;
 import org.bimserver.ifc.IfcModel;
 import org.bimserver.models.ifc2x3.*;
-import org.bimserver.o3d.BinaryIndexBuffer;
-import org.bimserver.o3d.BinaryVertexBuffer;
-import org.bimserver.o3d.SetGeometryResult;
+import org.bimserver.serializers.json.data.BinaryIndexBuffer;
+import org.bimserver.serializers.json.data.BinaryVertexBuffer;
+import org.bimserver.serializers.json.data.SetGeometryResult;
 import org.bimserver.plugins.PluginException;
 import org.bimserver.plugins.PluginManager;
 import org.bimserver.plugins.ifcengine.*;
@@ -58,6 +58,20 @@ public class JSONModelFormat2Serializer extends BimModelSerializer {
 			return false;
 		}
 	}
+	
+	private String colorFromClass(Class ifcClass) {
+		if (ifcClass == IfcWallStandardCase.class) {
+			return "0xFF4400";
+		} else if (ifcClass == IfcDoor.class) {
+			return "0xFAFAFA";
+		} else if (ifcClass == IfcWindow.class) {
+			return "0xCCFFFF";
+		} else if (ifcClass == IfcOpeningElement.class) {
+			return "0x086CA2";
+		} else {
+			return "0x000000";
+		}
+	}
 
 	private void writeGeometry(SetGeometryResult geometry, IfcRoot ifcRoot) {
 
@@ -90,7 +104,7 @@ public class JSONModelFormat2Serializer extends BimModelSerializer {
 		}
 
 		out.println("    ],");
-		out.println("    'colors':   [ ],");
+		out.println("  'color':    " + colorFromClass(geometry.getIfcClass()) + " ,");
 		out.println("    'uvs':      [ ],");
 		out.print("    'faces': [ ");
 
