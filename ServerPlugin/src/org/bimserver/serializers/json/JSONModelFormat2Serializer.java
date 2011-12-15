@@ -56,14 +56,57 @@ public class JSONModelFormat2Serializer extends BimModelSerializer {
 		}
 	}
 	
-	private String colorFromClass(Class ifcClass) {
-		if (ifcClass == IfcWallStandardCase.class) {
-			return "0xFF4400";
-		} else if (ifcClass == IfcDoor.class) {
-			return "0xFAFAFA";
-		} else if (ifcClass == IfcWindow.class) {
+	private String colorFromClass(IfcRoot ifcClass) {
+
+		if (ifcClass instanceof IfcSlab) {
+			return "0xCCCDFF";
+		} else if (ifcClass instanceof IfcRoof) {
+			return "0x1F1F1F";
+		} else if (ifcClass instanceof IfcPlate) {
+			return "0x999999";
+		} else if (ifcClass instanceof IfcWall) {
+			return "0xB8B8B8";
+		} else if (ifcClass instanceof IfcWallStandardCase) {
+			return "0x999999";
+		} else if (ifcClass instanceof IfcCurtainWall) {
+			return "0x888888";
+		} else if (ifcClass instanceof IfcWindow) {
 			return "0xCCFFFF";
-		} else if (ifcClass == IfcOpeningElement.class) {
+		} else if (ifcClass instanceof IfcDoor) {
+			return "0x331A00";	
+		} else if (ifcClass instanceof IfcColumn) {
+			return "0x3D3D3D";
+		} else if (ifcClass instanceof IfcMember) {
+			return "0x7A7A7A";
+		} else if (ifcClass instanceof IfcBeam) {
+			return "0xFFCC33";
+		} else if (ifcClass instanceof IfcStair) {
+			return "0xFFE47A";
+		} else if (ifcClass instanceof IfcStairFlight) {
+			return "0xFFD83D";
+		} else if (ifcClass instanceof IfcRailing) {
+			return "0x0027C2";
+		} else if (ifcClass instanceof IfcRamp) {
+			return "0xC20027";
+		} else if (ifcClass instanceof IfcFlowSegment) {
+			return "0x6699CC";
+		} else if (ifcClass instanceof IfcFlowTreatmentDevice) {
+			return "0x6666CC";
+		} else if (ifcClass instanceof IfcFlowTerminal) {
+			return "0x2E2E8A";
+		} else if (ifcClass instanceof IfcFlowFitting) {
+			return "0x2E5C8A";
+		} else if (ifcClass instanceof IfcFlowController) {
+			return "0x2E2E8A";
+		} else if (ifcClass instanceof IfcFurnishingElement) {
+			return "0x00EB00";
+		} else if (ifcClass instanceof IfcEnergyConversionDevice) {
+			return "0xCC0033";
+		} else if (ifcClass instanceof IfcDistributionControlElement) {
+			return "0xFF0A47";
+		} else if (ifcClass instanceof IfcBuildingElementProxy) {
+			return "0xEB00EB";
+		} else if (ifcClass instanceof IfcOpeningElement) {
 			return "0x086CA2";
 		} else {
 			return "0x000000";
@@ -101,7 +144,7 @@ public class JSONModelFormat2Serializer extends BimModelSerializer {
 		}
 
 		out.println("    ],");
-		out.println("  'color':    " + colorFromClass(geometry.getIfcClass()) + " ,");
+		out.println("  'color':    " + colorFromClass(ifcRoot) + " ,");
 		out.println("    'uvs':      [ ],");
 		out.print("    'faces': [ ");
 
@@ -122,9 +165,16 @@ public class JSONModelFormat2Serializer extends BimModelSerializer {
 
 	private void writeGeometries() {
 		List<SetGeometryResult> geometryList = new ArrayList<SetGeometryResult>();
-		//Class[] eClasses = new Class[] { IfcSlab.class, IfcRoof.class, IfcWall.class, IfcWallStandardCase.class, IfcWindow.class, IfcDoor.class, IfcColumn.class, IfcRamp.class,
-		//				IfcStair.class, IfcStairFlight.class, IfcRailing.class };
-		Class[] eClasses = new Class[]{IfcWallStandardCase.class, IfcWall.class, IfcWindow.class, IfcDoor.class, IfcSlab.class, IfcColumn.class};
+		//More complete list
+		Class[] eClasses = new Class[] { IfcSlab.class, IfcRoof.class, IfcPlate.class,
+				                         IfcWall.class, IfcWallStandardCase.class, IfcCurtainWall.class, 
+				                         IfcWindow.class, IfcDoor.class, IfcBeam.class, IfcColumn.class, IfcMember.class,
+				                         IfcStair.class, IfcStairFlight.class, IfcRailing.class,IfcRamp.class, 
+				                         IfcFlowSegment.class, IfcFlowTreatmentDevice.class, IfcFlowTerminal.class, IfcFlowFitting.class, IfcFlowController.class,
+				                         IfcFurnishingElement.class, IfcBuildingElementProxy.class,
+				                         IfcEnergyConversionDevice.class, IfcDistributionControlElement.class};
+		//Simplified list
+		//Class[] eClasses = new Class[] {IfcWallStandardCase.class, IfcWall.class, IfcWindow.class, IfcDoor.class, IfcSlab.class, IfcColumn.class};
 
 		try {
 			boolean first = true;
