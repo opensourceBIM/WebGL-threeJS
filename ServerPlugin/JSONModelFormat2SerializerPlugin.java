@@ -48,7 +48,7 @@ public class JSONModelFormat2SerializerPlugin implements SerializerPlugin {
 	public void init(PluginManager pluginManager) throws PluginException {
 		pluginManager.requireSchemaDefinition();
 		pluginManager.requireIfcEngine();
-		initialized  = true;
+		initialized = true;
 	}
 
 	@Override
