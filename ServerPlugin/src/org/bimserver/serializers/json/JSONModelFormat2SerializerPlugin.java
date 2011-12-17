@@ -26,24 +26,10 @@ public class JSONModelFormat2SerializerPlugin implements SerializerPlugin {
 		return "JSONModelFormat2Serializer"; // TODO: better names and descriptions
 	}
 	
-	
-//	@Override 
-//	public String getName() {
-//		return getClass().getName();
-//	}
-
 	@Override
 	public String getVersion() {
 		return "0.1";
 	}
-
-//	@Override
-//	public Set<Class<? extends Plugin>> getRequiredPlugins() {
-//		Set<Class<? extends Plugin>> set = new HashSet<Class<? extends Plugin>>();
-//		set.add(SchemaPlugin.class);
-//		set.add(IfcEnginePlugin.class);
-//		return set;
-//	}
 
 	@Override
 	public void init(PluginManager pluginManager) throws PluginException {
