@@ -36,20 +36,22 @@
     <script src="Three.js"></script>
     <script src="RequestAnimationFrame.js"></script>
     <script src="ThreeJsViewer.js"></script>
+    <script src="Base64.js"></script>
     <script>
+        var viewer;
 		function revisionUpdate(poid) {
 			$('#roids').empty();
-			$.ajax({url: '/rest/getAllRevisionsOfProject', data: 'poid='+poid, success: function(data){
+			$.ajax({url: '/rest/getAllRevisionsOfProject', data: 'poid='+poid, dataType: 'json', success: function(data){
 				var select = $('#roids');
 				$.each(data.sRevision, function(i, revision){
 					$('<option />').val(revision.oid).text(revision.id).appendTo(select);
 				});
-			}});		
+			}});
 		}
 		function projectUpdate() {
 			$('#revision').show();
 			$('#poids').empty();
-			$.ajax({url: '/rest/getAllProjects', success: function(data) {
+			$.ajax({url: '/rest/getAllProjects', dataType: 'json', success: function(data) {
 				var select = $('#poids');
 				$.each( data.sProject, function(i, project) {
 					$('<option />').val(project.oid).text(project.name).appendTo(select);
@@ -57,7 +59,6 @@
 				revisionUpdate(select.val());
 			}});
 		}
-		var viewer
         $(document).ready(function() {
 			viewer = new ThreeJsViewer();
 			viewer.init($('#viewerContainer'));
@@ -76,13 +77,11 @@
 			};
 			viewer.animate();
             $('#login').submit(function() {
-                $.ajax({
-					url: '/rest/login',
-                    username: $('#login input[name=username]').val(),
-                    password: $('#login input[name=password]').val(),
-					data: $('#login').serialize(),
-					success: projectUpdate
-				});
+                var username = $('#login input[name=username]').val();
+                var password = $('#login input[name=password]').val();
+                var auth = Base64.encode(username+':'+password);
+                $.ajax({url: '/rest/ping', headers: {'Authorization': auth}});
+                projectUpdate();
                 return false;
             });
             $('#poids').change(function() {
