@@ -13,54 +13,37 @@ function ThreeJsViewer(){
         this.renderer.sortObjects = false;
         this.renderer.setSize( this.size.width, this.size.height);
 
-        this.camera = new THREE.TrackballCamera({
+        this.scene = new THREE.Scene();
 
-                    fov: 50,
-                    aspect: this.size.width / this.size.height,
-                    near: 1,
-                    far: 100000,
-
-                    rotateSpeed: 1.0,
-                    zoomSpeed: 1.2,
-                    panSpeed: 0.2,
-
-                    noZoom: false,
-                    noPan: false,
-
-                    staticMoving: false,
-                    dynamicDampingFactor: 0.3,
-
-                    minDistance: 0.1,
-                    maxDistance: 100000,
-
-                    keys: [ 65, 83, 68 ], // [ rotateKey, zoomKey, panKey ],
-
-                    domElement: this.renderer.domElement
-
-                });
+        this.camera = new THREE.PerspectiveCamera(50, this.size.width / this.size.height, 1, 100000); // fov, aspect, near, far
         this.camera.up = new THREE.Vector3(0, 0, 1);
         this.camera.position = new THREE.Vector3(1, 1, 1);
-        this.camera.target.position = new THREE.Vector3(0, 0, 0);
-        this.camera.screen.width =  this.size.width;
-        this.camera.screen.height = this.size.height;
 
-        this.scene = new THREE.Scene();
+        this.controls = new THREE.TrackballControls(this.camera, this.renderer.domElement);
+        this.controls.minDistance = 0.1;
+        this.controls.maxDistance = 100000;
+        this.controls.target.position = new THREE.Vector3(0, 0, 0);
+        this.controls.screen.width =  this.size.width;
+        this.controls.screen.height = this.size.height;
+
+        this.scene.add(this.camera);
+
         this.root = new THREE.Object3D();
-        this.scene.addObject(this.root);
+        this.scene.add(this.root);
 
         var light1 = new THREE.DirectionalLight(0xffffff, 2);
         light1.position.x = .5;
         light1.position.y = 1;
         light1.position.z = 2;
         light1.position.normalize();
-        this.scene.addLight(light1);
+        this.scene.add(light1);
 
         var light2 = new THREE.DirectionalLight(0x555555, 1);
         light2.position.x = - 2;
         light2.position.y = - 1;
         light2.position.z = - .5;
         light2.position.normalize();
-        this.scene.addLight(light2);
+        this.scene.add(light2);
 
         container.click(this.onMouseDown.bind(this));
         container.append(this.renderer.domElement);
@@ -75,14 +58,14 @@ function ThreeJsViewer(){
             var material = new THREE.MeshPhongMaterial({ color: this.UNSELECTED_COLOR });
             var mesh = new THREE.Mesh(geometry, material);
             mesh.doubleSided = false;
-            this.root.addChild(mesh);
+            this.root.add(mesh);
             this.meshes[mesh.geometry.id] = partId;
         }.bind(this); }.bind(this);
 
         var texture_path = geometryLoader.extractUrlbase(modelUrl);
-        var worker = new Worker(modelUrl);
-        worker.onmessage = function ( event ) {
-            $.each(event.data, function(index, modelPart){
+
+        var createModel = function(jsonObject, dummy, texturePath){ // callback will be ignored, curried on the fly
+            $.each(jsonObject, function(index, modelPart){
                 geometryLoader.createModel( modelPart.geometry, callback(modelPart.id), texture_path );
             });
             var bb = this.computeBoundingBox();
@@ -94,17 +77,17 @@ function ThreeJsViewer(){
 
             var maxExtent = Math.max.apply(Math, [ext.x, ext.y, ext.z]);
             this.camera.position = new THREE.Vector3(maxExtent, maxExtent, maxExtent);
-
             // TODO: adjust clipping
-            geometryLoader.onLoadComplete();
         }.bind(this);
+
         geometryLoader.onLoadStart();
-        worker.postMessage( new Date().getTime() );
+        geometryLoader.loadAjaxJSON({createModel: createModel, onLoadComplete: geometryLoader.onLoadComplete}, modelUrl, {}, texture_path);
+
     };
     this.clearModel = function(){
         this.scene.removeChild(this.root);
         this.root = new THREE.Object3D();
-        this.scene.addObject(this.root);
+        this.scene.add(this.root);
         this.meshes = {};
     };
     this.computeBoundingBox = function(){
@@ -136,12 +119,12 @@ function ThreeJsViewer(){
         var intersects = ray.intersectScene(this.scene);
         if (intersects.length > 0) {
             if (this.selected != intersects[0].object) {
-                if (this.selected) this.selected.materials[0].color.setHex(this.UNSELECTED_COLOR);
+                if (this.selected) this.selected.material.color.setHex(this.UNSELECTED_COLOR);
                 this.selected = intersects[0].object;
-                this.selected.materials[0].color.setHex(this.SELECTED_COLOR);
+                this.selected.material.color.setHex(this.SELECTED_COLOR);
             }
         } else {
-            if (this.selected) this.selected.materials[0].color.setHex(this.UNSELECTED_COLOR);
+            if (this.selected) this.selected.material.color.setHex(this.UNSELECTED_COLOR);
             this.selected = null;
         }
         this.onClick(this.selected ? this.meshes[this.selected.geometry.id] : null);
@@ -154,6 +137,8 @@ function ThreeJsViewer(){
     };
 
     this.render = function() {
+        this.controls.update();
+        this.renderer.clear();
         this.renderer.render(this.scene,this.camera);
     };
 }
