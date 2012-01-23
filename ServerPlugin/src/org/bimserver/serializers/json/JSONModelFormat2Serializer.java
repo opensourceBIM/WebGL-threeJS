@@ -1,30 +1,53 @@
 package org.bimserver.serializers.json;
 
+import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.bimserver.emf.IdEObject;
-import org.bimserver.ifc.IfcModel;
-import org.bimserver.models.ifc2x3.*;
+import org.bimserver.models.ifc2x3.IfcColumn;
+import org.bimserver.models.ifc2x3.IfcDoor;
+import org.bimserver.models.ifc2x3.IfcOpeningElement;
+import org.bimserver.models.ifc2x3.IfcRoot;
+import org.bimserver.models.ifc2x3.IfcSlab;
+import org.bimserver.models.ifc2x3.IfcWall;
+import org.bimserver.models.ifc2x3.IfcWallStandardCase;
+import org.bimserver.models.ifc2x3.IfcWindow;
 import org.bimserver.plugins.PluginException;
 import org.bimserver.plugins.PluginManager;
-import org.bimserver.plugins.ifcengine.*;
-import org.bimserver.plugins.serializers.*;
+import org.bimserver.plugins.ifcengine.IfcEngine;
+import org.bimserver.plugins.ifcengine.IfcEngineException;
+import org.bimserver.plugins.ifcengine.IfcEngineGeometry;
+import org.bimserver.plugins.ifcengine.IfcEngineInstance;
+import org.bimserver.plugins.ifcengine.IfcEngineInstanceVisualisationProperties;
+import org.bimserver.plugins.ifcengine.IfcEngineModel;
+import org.bimserver.plugins.serializers.EmfSerializer;
+import org.bimserver.plugins.serializers.IfcModelInterface;
+import org.bimserver.plugins.serializers.ProjectInfo;
+import org.bimserver.plugins.serializers.SerializerException;
 import org.eclipse.emf.ecore.EObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.OutputStream;
-import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-
-public class JSONModelFormat2Serializer extends BimModelSerializer {
+public class JSONModelFormat2Serializer extends EmfSerializer {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(JSONModelFormat2Serializer.class);
-	private IfcEngine ifcEngine;
 	private PrintWriter out;
+	private IfcEngineModel ifcEngineModel;
+	private IfcEngineGeometry geometry;
 
-	public void init(IfcModelInterface model, ProjectInfo projectInfo, PluginManager pluginManager) throws SerializerException {
-		super.init(model, projectInfo, pluginManager);
+	public void init(IfcModelInterface model, ProjectInfo projectInfo, PluginManager pluginManager, IfcEngine ifcEngine) throws SerializerException {
+		super.init(model, projectInfo, pluginManager, ifcEngine);
+		try {
+			EmfSerializer serializer = getPluginManager().requireIfcStepSerializer();
+			serializer.init(model, getProjectInfo(), getPluginManager(), ifcEngine);
+			ifcEngineModel = ifcEngine.openModel(serializer.getBytes());
+			ifcEngineModel.setPostProcessing(true);
+			geometry = ifcEngineModel.finalizeModelling(ifcEngineModel.initializeModelling());
+		} catch (Exception e) {
+			throw new SerializerException(e);
+		}
 	}
 
 	@Override
@@ -35,11 +58,6 @@ public class JSONModelFormat2Serializer extends BimModelSerializer {
 	@Override
 	public boolean write(OutputStream outputStream) throws SerializerException {
 		if (getMode() == Mode.BODY) {
-			try {
-				ifcEngine = getPluginManager().requireIfcEngine().createIfcEngine();
-			} catch (PluginException e) {
-				throw new SerializerException(e);
-			}
 			out = new PrintWriter(outputStream);
 			out.println("var model = [");
 			writeGeometries();
@@ -55,7 +73,7 @@ public class JSONModelFormat2Serializer extends BimModelSerializer {
 			return false;
 		}
 	}
-	
+
 	private String colorFromClass(Class ifcClass) {
 		if (ifcClass == IfcWallStandardCase.class) {
 			return "0xFF4400";
@@ -122,9 +140,11 @@ public class JSONModelFormat2Serializer extends BimModelSerializer {
 
 	private void writeGeometries() {
 		List<SetGeometryResult> geometryList = new ArrayList<SetGeometryResult>();
-		//Class[] eClasses = new Class[] { IfcSlab.class, IfcRoof.class, IfcWall.class, IfcWallStandardCase.class, IfcWindow.class, IfcDoor.class, IfcColumn.class, IfcRamp.class,
-		//				IfcStair.class, IfcStairFlight.class, IfcRailing.class };
-		Class[] eClasses = new Class[]{IfcWallStandardCase.class, IfcWall.class, IfcWindow.class, IfcDoor.class, IfcSlab.class, IfcColumn.class};
+		// Class[] eClasses = new Class[] { IfcSlab.class, IfcRoof.class,
+		// IfcWall.class, IfcWallStandardCase.class, IfcWindow.class,
+		// IfcDoor.class, IfcColumn.class, IfcRamp.class,
+		// IfcStair.class, IfcStairFlight.class, IfcRailing.class };
+		Class[] eClasses = new Class[] { IfcWallStandardCase.class, IfcWall.class, IfcWindow.class, IfcDoor.class, IfcSlab.class, IfcColumn.class };
 
 		try {
 			boolean first = true;
@@ -147,47 +167,28 @@ public class JSONModelFormat2Serializer extends BimModelSerializer {
 		}
 	}
 
-
 	private SetGeometryResult getGeometry(IdEObject ifcRootObject) throws SerializerException, IfcEngineException {
-		IfcModel ifcModel = new IfcModel();
-		convertToSubset(ifcRootObject.eClass(), ifcRootObject, ifcModel, new HashMap<EObject, EObject>());
-		EmfSerializer serializer = getPluginManager().requireIfcStepSerializer();
-		serializer.init(ifcModel, null, getPluginManager());
 		BinaryIndexBuffer binaryIndexBuffer = new BinaryIndexBuffer();
 		BinaryVertexBuffer binaryVertexBuffer = new BinaryVertexBuffer();
-		IfcEngineModel model = ifcEngine.openModel(serializer.getBytes());
-		try {
-			IfcEngineSurfaceProperties sp = model.initializeModelling();
-			model.setPostProcessing(true);
-			IfcEngineGeometry geometry = model.finalizeModelling(sp);
-			int nrIndices = 0;
-			if (geometry != null) {
-				for (IfcEngineInstance instance : model.getInstances(ifcRootObject.eClass().getName().toUpperCase())) {
-					IfcEngineInstanceVisualisationProperties instanceInModelling = instance.getVisualisationProperties();
-					for (int i = instanceInModelling.getStartIndex(); i < instanceInModelling.getPrimitiveCount() * 3 + instanceInModelling.getStartIndex(); i += 3) {
-						binaryIndexBuffer.addIndex(geometry.getIndex(i));
-						binaryIndexBuffer.addIndex(geometry.getIndex(i + 2));
-						binaryIndexBuffer.addIndex(geometry.getIndex(i + 1));
-						nrIndices++;
-					}
-				}
-				for (int i = 0; i < geometry.getNrVertices(); i += 3) {
-					binaryVertexBuffer.addVertex(geometry.getVertex(i));
-					binaryVertexBuffer.addVertex(geometry.getVertex(i + 1));
-					binaryVertexBuffer.addVertex(geometry.getVertex(i + 2));
-				}
-				for (int i = 0; i < geometry.getNrNormals(); i += 3) {
-					binaryVertexBuffer.addNormal(geometry.getNormal(i));
-					binaryVertexBuffer.addNormal(geometry.getNormal(i + 1));
-					binaryVertexBuffer.addNormal(geometry.getNormal(i + 2));
-				}
-				return new SetGeometryResult(nrIndices * 3, geometry.getNrVertices(), binaryIndexBuffer, binaryVertexBuffer);
-			}
-		} finally {
-			model.close();
+		int nrIndices = 0;
+		IfcEngineInstance instance = ifcEngineModel.getInstanceFromExpressId((int)ifcRootObject.getOid());
+		IfcEngineInstanceVisualisationProperties visualisationProperties = instance.getVisualisationProperties();
+		for (int i = visualisationProperties.getStartIndex(); i < visualisationProperties.getPrimitiveCount() * 3 + visualisationProperties.getStartIndex(); i += 3) {
+			binaryIndexBuffer.addIndex(geometry.getIndex(i));
+			binaryIndexBuffer.addIndex(geometry.getIndex(i + 2));
+			binaryIndexBuffer.addIndex(geometry.getIndex(i + 1));
+			nrIndices++;
 		}
-		return null;
+		for (int i = 0; i < geometry.getNrVertices(); i += 3) {
+			binaryVertexBuffer.addVertex(geometry.getVertex(i));
+			binaryVertexBuffer.addVertex(geometry.getVertex(i + 1));
+			binaryVertexBuffer.addVertex(geometry.getVertex(i + 2));
+		}
+		for (int i = 0; i < geometry.getNrNormals(); i += 3) {
+			binaryVertexBuffer.addNormal(geometry.getNormal(i));
+			binaryVertexBuffer.addNormal(geometry.getNormal(i + 1));
+			binaryVertexBuffer.addNormal(geometry.getNormal(i + 2));
+		}
+		return new SetGeometryResult(nrIndices * 3, geometry.getNrVertices(), binaryIndexBuffer, binaryVertexBuffer);
 	}
-
-
 }
