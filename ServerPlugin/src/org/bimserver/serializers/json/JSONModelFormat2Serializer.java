@@ -41,12 +41,10 @@ public class JSONModelFormat2Serializer extends BimModelSerializer {
 				throw new SerializerException(e);
 			}
 			out = new PrintWriter(outputStream);
-			out.println("var model = [");
+			out.println("[");
 			writeGeometries();
 			out.println();
-			out.println("];");
-			out.println();
-			out.println("postMessage( model );");
+			out.println("]");
 			out.flush();
 
 			setMode(Mode.FINISHED);
@@ -55,29 +53,15 @@ public class JSONModelFormat2Serializer extends BimModelSerializer {
 			return false;
 		}
 	}
-	
-	private String colorFromClass(Class ifcClass) {
-		if (ifcClass == IfcWallStandardCase.class) {
-			return "0xFF4400";
-		} else if (ifcClass == IfcDoor.class) {
-			return "0xFAFAFA";
-		} else if (ifcClass == IfcWindow.class) {
-			return "0xCCFFFF";
-		} else if (ifcClass == IfcOpeningElement.class) {
-			return "0x086CA2";
-		} else {
-			return "0x000000";
-		}
-	}
 
 	private void writeGeometry(SetGeometryResult geometry, IfcRoot ifcRoot) {
 
-		out.println("  'id' : '" + ifcRoot.getGlobalId().getWrappedValue() + "', ");
-		out.println("  'type' : '" + ifcRoot.eClass().getName().toUpperCase() + "', ");
-		out.println("  'geometry' : {");
-		out.println("   'version' : 2, ");
-		out.println("    'materials': [],");
-		out.print("    'vertices': [ ");
+		out.println("  \"id\" : \"" + ifcRoot.getGlobalId().getWrappedValue() + "\", ");
+		out.println("  \"type\" : \"" + ifcRoot.eClass().getName().toUpperCase() + "\", ");
+		out.println("  \"geometry\" : {");
+		out.println("   \"metadata\" : { \"formatVersion\" : 3 }, ");
+		out.println("	\"materials\": [],");
+		out.print("	\"vertices\": [ ");
 
 		List<Float> vertices = geometry.getBinaryVertexBuffer().getVertices();
 		if (vertices != null && vertices.size() > 0) {
@@ -88,8 +72,8 @@ public class JSONModelFormat2Serializer extends BimModelSerializer {
 			}
 		}
 
-		out.println("    ], ");
-		out.print("    'normals':  [");
+		out.println("	], ");
+		out.print("	\"normals\":  [");
 
 		List<Float> normals = geometry.getBinaryVertexBuffer().getNormals();
 		if (normals != null && normals.size() > 0) {
@@ -100,10 +84,10 @@ public class JSONModelFormat2Serializer extends BimModelSerializer {
 			}
 		}
 
-		out.println("    ],");
-		out.println("  'color':    " + colorFromClass(geometry.getIfcClass()) + " ,");
-		out.println("    'uvs':      [ ],");
-		out.print("    'faces': [ ");
+		out.println("	],");
+		out.println("	\"colors\":   [ ],");
+		out.println("	\"uvs\":	  [ ],");
+		out.print("	\"faces\": [ ");
 
 		List<Integer> indices = geometry.getBinaryIndexBuffer().getIndices();
 		if (indices != null && indices.size() > 0) {
@@ -116,7 +100,7 @@ public class JSONModelFormat2Serializer extends BimModelSerializer {
 		}
 
 		out.println(" ]");
-		out.println("    }");
+		out.println("	 }");
 		out.println();
 	}
 
