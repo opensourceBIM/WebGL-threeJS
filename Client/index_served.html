@@ -43,7 +43,9 @@
             $('#roids').empty();
             $.ajax({url: '/rest/getAllRevisionsOfProject', data: 'poid='+poid, dataType: 'json', success: function(data){
                 var select = $('#roids');
-                $.each(data.sRevision, function(i, revision){
+                $(data.sRevision).sort(function(r1,r2){
+                    return r1.id > r2.id;
+                }).each(function(i, revision){
                     $('<option />').val(revision.oid).text(revision.id).appendTo(select);
                 });
             }});
@@ -51,9 +53,13 @@
         function projectUpdate() {
             $('#revision').show();
             $('#poids').empty();
-            $.ajax({url: '/rest/getAllProjects', dataType: 'json', success: function(data) {
+            $.ajax({url: '/rest/getAllReadableProjects', dataType: 'json', success: function(data) {
                 var select = $('#poids');
-                $.each( data.sProject, function(i, project) {
+                $(data.sProject).filter(function(i,project){
+                    return project.state == "ACTIVE" && project.name != "INT-Store";
+                }).sort(function(p1,p2){
+                    return p1.name > p2.name;
+                }).each(function(i, project) {
                     $('<option />').val(project.oid).text(project.name).appendTo(select);
                 });
                 revisionUpdate(select.val());
@@ -62,13 +68,14 @@
         $(document).ready(function() {
             viewer = new ThreeJsViewer();
             viewer.init($('#viewerContainer'));
+            projectUpdate();
             viewer.onClick = function(id) {
                 if (id==null) {
                     $('#selection').html('nothing');
                     return;
                 }
                 $.ajax({
-                    url: '/rest/getDataObjectByGuid',
+                    url: '/rest/getDataObjectByGuid', dataType: 'json',
                     data: 'roid='+$('#roids').val()+'&guid='+id,
                     success: function(data){
                         $('#selection').html(id + ' - ' + data.sDataObject.name + ' - ' + data.sDataObject.type);
@@ -76,24 +83,24 @@
                 });
             };
             viewer.animate();
-            $('#login').submit(function() {
-                var username = $('#login input[name=username]').val();
-                var password = $('#login input[name=password]').val();
-                var auth = Base64.encode(username+':'+password);
-                $.ajax({url: '/rest/ping', headers: {'Authorization': auth}});
-                projectUpdate();
-                return false;
-            });
             $('#poids').change(function() {
                 revisionUpdate($(this).val());
             });
             $('#revision').submit(function(){
                 $.ajax({
                     url: '/rest/download',
-                    data: 'roid='+$(this.roids).val()+'&resultType=THREEJS',
+                    data: 'roid='+$(this.roids).val()+'&serializerName=ThreeJs&sync=true&showOwn=true',
                     success: function(data) {
                         viewer.clearModel();
-                        viewer.loadModel('/download?longActionId=' + data);
+                        $.ajax({
+                            url: '/rest/getDownloadData',
+                            dataType: 'json',
+                            data: 'actionId=' + data,
+                            success: function(model) {
+                                viewer.loadSerializedModel(Base64.decode(model.sCheckoutResult.file));
+                            }
+                        });
+                        // viewer.loadModel('/rest/downloadBinary?actionId=' + data);
                     }
                 });
                 return false;
@@ -103,11 +110,6 @@
 </head>
 <body>
 <div>
-<form id="login" class="boxed" style="margin-right: 20px;">
-    User <input name="username" type="text" />
-    PW <input name="password" type="password" />
-    <input type="submit" value="Login"/>
-</form>
 <form id="revision" class="boxed" style="display: none;">
     <select id="poids"></select>
     <select id="roids"></select>
