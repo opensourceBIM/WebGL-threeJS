@@ -18,9 +18,9 @@
         p, div {
             margin: 10px;
         }
-		form {
-			display: inline;
-		}
+        form {
+            display: inline;
+        }
     </style>
     <script src="jquery-1.6.1.min.js"></script>
     <script>
@@ -39,43 +39,43 @@
     <script src="Base64.js"></script>
     <script>
         var viewer;
-		function revisionUpdate(poid) {
-			$('#roids').empty();
-			$.ajax({url: '/rest/getAllRevisionsOfProject', data: 'poid='+poid, dataType: 'json', success: function(data){
-				var select = $('#roids');
-				$.each(data.sRevision, function(i, revision){
-					$('<option />').val(revision.oid).text(revision.id).appendTo(select);
-				});
-			}});
-		}
-		function projectUpdate() {
-			$('#revision').show();
-			$('#poids').empty();
-			$.ajax({url: '/rest/getAllProjects', dataType: 'json', success: function(data) {
-				var select = $('#poids');
-				$.each( data.sProject, function(i, project) {
-					$('<option />').val(project.oid).text(project.name).appendTo(select);
-				});
-				revisionUpdate(select.val());
-			}});
-		}
+        function revisionUpdate(poid) {
+            $('#roids').empty();
+            $.ajax({url: '/rest/getAllRevisionsOfProject', data: 'poid='+poid, dataType: 'json', success: function(data){
+                var select = $('#roids');
+                $.each(data.sRevision, function(i, revision){
+                    $('<option />').val(revision.oid).text(revision.id).appendTo(select);
+                });
+            }});
+        }
+        function projectUpdate() {
+            $('#revision').show();
+            $('#poids').empty();
+            $.ajax({url: '/rest/getAllProjects', dataType: 'json', success: function(data) {
+                var select = $('#poids');
+                $.each( data.sProject, function(i, project) {
+                    $('<option />').val(project.oid).text(project.name).appendTo(select);
+                });
+                revisionUpdate(select.val());
+            }});
+        }
         $(document).ready(function() {
-			viewer = new ThreeJsViewer();
-			viewer.init($('#viewerContainer'));
-			viewer.onClick = function(id) {
-				if (id==null) {
-					$('#selection').html('nothing');
-					return;
-				}
-				$.ajax({
-					url: '/rest/getDataObjectByGuid',
-					data: 'roid='+$('#roids').val()+'&guid='+id,
-					success: function(data){
-						$('#selection').html(id + ' - ' + data.sDataObject.name + ' - ' + data.sDataObject.type);
-					}
-				});
-			};
-			viewer.animate();
+            viewer = new ThreeJsViewer();
+            viewer.init($('#viewerContainer'));
+            viewer.onClick = function(id) {
+                if (id==null) {
+                    $('#selection').html('nothing');
+                    return;
+                }
+                $.ajax({
+                    url: '/rest/getDataObjectByGuid',
+                    data: 'roid='+$('#roids').val()+'&guid='+id,
+                    success: function(data){
+                        $('#selection').html(id + ' - ' + data.sDataObject.name + ' - ' + data.sDataObject.type);
+                    }
+                });
+            };
+            viewer.animate();
             $('#login').submit(function() {
                 var username = $('#login input[name=username]').val();
                 var password = $('#login input[name=password]').val();
@@ -85,19 +85,19 @@
                 return false;
             });
             $('#poids').change(function() {
-				revisionUpdate($(this).val());
+                revisionUpdate($(this).val());
             });
-			$('#revision').submit(function(){
-				$.ajax({
-					url: '/rest/download',
-					data: 'roid='+$(this.roids).val()+'&resultType=THREEJS',
-					success: function(data) {
-						viewer.clearModel();
-						viewer.loadModel('/download?longActionId=' + data);
-					}
-				});
-				return false;
-			});
+            $('#revision').submit(function(){
+                $.ajax({
+                    url: '/rest/download',
+                    data: 'roid='+$(this.roids).val()+'&resultType=THREEJS',
+                    success: function(data) {
+                        viewer.clearModel();
+                        viewer.loadModel('/download?longActionId=' + data);
+                    }
+                });
+                return false;
+            });
         });
     </script>
 </head>
@@ -105,13 +105,13 @@
 <div>
 <form id="login" class="boxed" style="margin-right: 20px;">
     User <input name="username" type="text" />
-	PW <input name="password" type="password" />
+    PW <input name="password" type="password" />
     <input type="submit" value="Login"/>
 </form>
 <form id="revision" class="boxed" style="display: none;">
     <select id="poids"></select>
     <select id="roids"></select>
-	<input type="submit" value="Show" />
+    <input type="submit" value="Show" />
 </form>
 </div>
 <div id="viewerContainer"></div>
