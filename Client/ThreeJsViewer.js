@@ -51,47 +51,47 @@ function ThreeJsViewer(){
         this.onclick = function(){};
     };
 
-    this.registerGeometry = function(partId) {
-        var material = new THREE.MeshPhongMaterial({ color: this.UNSELECTED_COLOR });
+    this.registerGeometryFunc = function(){
         var viewer = this;
-        return function(geometry) {
-            var mesh = new THREE.Mesh(geometry, material);
-            mesh.doubleSided = false;
-            viewer.root.add(mesh);
-            viewer.meshes[mesh.geometry.id] = partId;
+        return function(partId) {
+            var material = new THREE.MeshPhongMaterial({ color: viewer.UNSELECTED_COLOR });
+            return function(geometry) {
+                var mesh = new THREE.Mesh(geometry, material);
+                mesh.doubleSided = false;
+                viewer.root.add(mesh);
+                viewer.meshes[mesh.geometry.id] = partId;
+            };
         };
     };
 
-    this.createScene = function(jsonObject, geometryModelCreator, texture_path){ // callback will be curried on the fly
-            var viewer = this;
-            $.each(jsonObject, function(index, modelPart){
-                geometryModelCreator( modelPart.geometry, viewer.registerGeometry(modelPart.id), texture_path );
-            });
-            var bb = this.computeBoundingBox();
-            var ext = {x: bb.x[1] - bb.x[0], y: bb.y[1] - bb.y[0], z: bb.z[1] - bb.z[0]};
-            // center mesh
-            this.root.position.x = ext.x * -.5 - bb.x[0];
-            this.root.position.y = ext.y * -.5 - bb.y[0];
-            this.root.position.z = ext.z * -.5 - bb.z[0];
+    this.finishScene = function(){
+        var bb = this.computeBoundingBox();
+        var ext = {x: bb.x[1] - bb.x[0], y: bb.y[1] - bb.y[0], z: bb.z[1] - bb.z[0]};
+        // center mesh
+        this.root.position.x = ext.x * -.5 - bb.x[0];
+        this.root.position.y = ext.y * -.5 - bb.y[0];
+        this.root.position.z = ext.z * -.5 - bb.z[0];
 
-            var maxExtent = Math.max.apply(Math, [ext.x, ext.y, ext.z]);
-            this.camera.position = new THREE.Vector3(maxExtent, maxExtent, maxExtent);
-            // TODO: adjust clipping
-        };
+        var maxExtent = Math.max(ext.x, ext.y, ext.z);
+        this.camera.position = new THREE.Vector3(maxExtent, maxExtent, maxExtent);
+        // TODO: adjust clipping
+    };
 
     this.loadSerializedModel = function(serializedModel){
-        var geometryLoader = new THREE.JSONLoader(true);
+        var geometryLoader = new JSONListLoader(true);
         var model = JSON.parse( serializedModel );
         geometryLoader.onLoadStart();
-        this.createScene(model, geometryLoader.createModel.bind(geometryLoader), 'localhost');
+        geometryLoader.createModelFull(model, this.registerGeometryFunc(), 'localhost');    // jsonObject, modelPartCallback, texture_path
         geometryLoader.onLoadComplete();
-    }
+        this.finishScene();
+    };
 
     this.loadModel = function(modelUrl){
-        var geometryLoader = new THREE.JSONLoader(true);
+        var geometryLoader = new JSONListLoader(true);
         var texture_path = geometryLoader.extractUrlbase(modelUrl);
         geometryLoader.onLoadStart();
-        geometryLoader.loadAjaxJSON({createModel: this.createScene, onLoadComplete: geometryLoader.onLoadComplete}, modelUrl, geometryLoader.createModel.bind(geometryLoader), texture_path);
+        geometryLoader.loadAjaxJSON(modelUrl, this.registerGeometryFunc(), texture_path);
+        this.finishScene();
     };
 
     this.clearModel = function(){
@@ -100,6 +100,7 @@ function ThreeJsViewer(){
         this.scene.add(this.root);
         this.meshes = {};
     };
+
     this.computeBoundingBox = function(){
         this.root.children[0].geometry.computeBoundingBox();
         var initialBB = this.root.children[0].geometry.boundingBox;
@@ -153,7 +154,7 @@ function ThreeJsViewer(){
             requestAnimationFrame(viewer._animate());
             viewer.render();
         }
-    }
+    };
 
     this.render = function() {
         this.controls.update();
