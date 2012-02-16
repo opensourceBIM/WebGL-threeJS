@@ -45,24 +45,28 @@ function ThreeJsViewer(){
         light2.position.normalize();
         this.scene.add(light2);
 
-        container.click(this.onMouseDown.bind(this));
+        container.click({viewer: this}, this.onMouseDown);
         container.append(this.renderer.domElement);
         this.container = container;
         this.onclick = function(){};
     };
 
-    this.callback = function(partId) { return function(geometry) {
+    this.registerGeometry = function(partId) {
         var material = new THREE.MeshPhongMaterial({ color: this.UNSELECTED_COLOR });
-        var mesh = new THREE.Mesh(geometry, material);
-        mesh.doubleSided = false;
-        this.root.add(mesh);
-        this.meshes[mesh.geometry.id] = partId;
-    }.bind(this); }.bind(this);
+        var viewer = this;
+        return function(geometry) {
+            var mesh = new THREE.Mesh(geometry, material);
+            mesh.doubleSided = false;
+            viewer.root.add(mesh);
+            viewer.meshes[mesh.geometry.id] = partId;
+        };
+    };
 
-    this.createModel = function(jsonObject, geometryModelCreator, texture_path){ // callback will be curried on the fly
+    this.createScene = function(jsonObject, geometryModelCreator, texture_path){ // callback will be curried on the fly
+            var viewer = this;
             $.each(jsonObject, function(index, modelPart){
-                geometryModelCreator( modelPart.geometry, this.callback(modelPart.id), texture_path );
-            }.bind(this));
+                geometryModelCreator( modelPart.geometry, viewer.registerGeometry(modelPart.id), texture_path );
+            });
             var bb = this.computeBoundingBox();
             var ext = {x: bb.x[1] - bb.x[0], y: bb.y[1] - bb.y[0], z: bb.z[1] - bb.z[0]};
             // center mesh
@@ -73,13 +77,13 @@ function ThreeJsViewer(){
             var maxExtent = Math.max.apply(Math, [ext.x, ext.y, ext.z]);
             this.camera.position = new THREE.Vector3(maxExtent, maxExtent, maxExtent);
             // TODO: adjust clipping
-        }.bind(this);
+        };
 
     this.loadSerializedModel = function(serializedModel){
         var geometryLoader = new THREE.JSONLoader(true);
         var model = JSON.parse( serializedModel );
         geometryLoader.onLoadStart();
-        this.createModel(model, geometryLoader.createModel.bind(geometryLoader), 'localhost');
+        this.createScene(model, geometryLoader.createModel.bind(geometryLoader), 'localhost');
         geometryLoader.onLoadComplete();
     }
 
@@ -87,8 +91,8 @@ function ThreeJsViewer(){
         var geometryLoader = new THREE.JSONLoader(true);
         var texture_path = geometryLoader.extractUrlbase(modelUrl);
         geometryLoader.onLoadStart();
-        geometryLoader.loadAjaxJSON({createModel: this.createModel, onLoadComplete: geometryLoader.onLoadComplete}, modelUrl, geometryLoader.createModel.bind(geometryLoader), texture_path);
-    }.bind(this);
+        geometryLoader.loadAjaxJSON({createModel: this.createScene, onLoadComplete: geometryLoader.onLoadComplete}, modelUrl, geometryLoader.createModel.bind(geometryLoader), texture_path);
+    };
 
     this.clearModel = function(){
         this.scene.remove(this.root);
@@ -112,35 +116,44 @@ function ThreeJsViewer(){
     };
 
     this.onMouseDown = function(event) {
+        var viewer = event.data.viewer;
+
         event.preventDefault();
 
         var mouse = new THREE.Vector3(0, 0, 0);
-        mouse.x = (event.pageX - this.container.offset().left) / this.size.width * 2 - 1; // ( event.clientX / this.size.width ) * 2 - 1;
-        mouse.y = - (event.pageY - this.container.offset().top) / this.size.height * 2 + 1; // - ( event.clientY / this.size.height ) * 2 + 1;
+        mouse.x = (event.pageX - viewer.container.offset().left) / viewer.size.width * 2 - 1; // ( event.clientX / this.size.width ) * 2 - 1;
+        mouse.y = - (event.pageY - viewer.container.offset().top) / viewer.size.height * 2 + 1; // - ( event.clientY / this.size.height ) * 2 + 1;
 
-        this.projector.unprojectVector(mouse, this.camera);
+        viewer.projector.unprojectVector(mouse, viewer.camera);
 
-        var ray = new THREE.Ray(this.camera.position, mouse.subSelf(this.camera.position).normalize());
+        var ray = new THREE.Ray(viewer.camera.position, mouse.subSelf(viewer.camera.position).normalize());
 
-        var intersects = ray.intersectScene(this.scene);
+        var intersects = ray.intersectScene(viewer.scene);
         if (intersects.length > 0) {
-            if (this.selected != intersects[0].object) {
-                if (this.selected) this.selected.material.color.setHex(this.UNSELECTED_COLOR);
-                this.selected = intersects[0].object;
-                this.selected.material.color.setHex(this.SELECTED_COLOR);
+            if (viewer.selected != intersects[0].object) {
+                if (viewer.selected) viewer.selected.material.color.setHex(viewer.UNSELECTED_COLOR);
+                viewer.selected = intersects[0].object;
+                viewer.selected.material.color.setHex(viewer.SELECTED_COLOR);
             }
         } else {
-            if (this.selected) this.selected.material.color.setHex(this.UNSELECTED_COLOR);
-            this.selected = null;
+            if (viewer.selected) viewer.selected.material.color.setHex(viewer.UNSELECTED_COLOR);
+            viewer.selected = null;
         }
-        this.onClick(this.selected ? this.meshes[this.selected.geometry.id] : null);
+        viewer.onClick(viewer.selected ? viewer.meshes[viewer.selected.geometry.id] : null);
     };
 
     this.animate = function() {
-        // Include examples/js/RequestAnimationFrame.js for cross-browser compatibility.
-        requestAnimationFrame(this.animate.bind(this));
-        this.render();
+        this._animate()();
     };
+
+    this._animate = function(){
+        // Include examples/js/RequestAnimationFrame.js for cross-browser compatibility.
+        var viewer = this;
+        return function(){
+            requestAnimationFrame(viewer._animate());
+            viewer.render();
+        }
+    }
 
     this.render = function() {
         this.controls.update();
