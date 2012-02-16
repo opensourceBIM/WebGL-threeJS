@@ -39,9 +39,11 @@
     <script src="Base64.js"></script>
     <script>
         var viewer;
+        var host = 'http://localhost';
         function revisionUpdate(poid) {
             $('#roids').empty();
-            $.ajax({url: '/rest/getAllRevisionsOfProject', data: 'poid='+poid, dataType: 'json', success: function(data){
+            $.ajax({url: host+'/rest/getAllRevisionsOfProject', data: 'poid='+poid, dataType: 'json',
+                xhrFields: { withCredentials: true}, success: function(data){
                 var select = $('#roids');
                 $(data.sRevision).sort(function(r1,r2){
                     return r1.id > r2.id;
@@ -53,19 +55,24 @@
         function projectUpdate() {
             $('#revision').show();
             $('#poids').empty();
-            $.ajax({url: '/rest/getAllReadableProjects', dataType: 'json', success: function(data) {
-                var select = $('#poids');
-                $(data.sProject).filter(function(i,project){
-                    return project.state == "ACTIVE" && project.name != "INT-Store";
-                }).sort(function(p1,p2){
-                    return p1.name > p2.name;
-                }).each(function(i, project) {
-                    $('<option />').val(project.oid).text(project.name).appendTo(select);
+                $.ajax({url: host+'/rest/getAllReadableProjects', dataType: 'json',
+                    xhrFields: { withCredentials: true}, success: function(data) {
+                        var select = $('#poids');
+                        $(data.sProject).filter(function(i,project){
+                            return project.state == "ACTIVE" && project.name != "INT-Store";
+                        }).sort(function(p1,p2){
+                            return p1.name > p2.name;
+                        }).each(function(i, project) {
+                            $('<option />').val(project.oid).text(project.name).appendTo(select);
+                        });
+                        revisionUpdate(select.val());
+                    }
                 });
-                revisionUpdate(select.val());
-            }});
         }
         $(document).ready(function() {
+            $('#errors').ajaxError(function(event, xhr, settings, thrown) {
+                $(this).text( 'Ajax error: ' +  thrown.message);
+            });
             viewer = new ThreeJsViewer();
             viewer.init($('#viewerContainer'));
             projectUpdate();
@@ -75,8 +82,9 @@
                     return;
                 }
                 $.ajax({
-                    url: '/rest/getDataObjectByGuid', dataType: 'json',
+                    url: host+'/rest/getDataObjectByGuid', dataType: 'json',
                     data: 'roid='+$('#roids').val()+'&guid='+id,
+                    xhrFields: { withCredentials: true},
                     success: function(data){
                         $('#selection').html(id + ' - ' + data.sDataObject.name + ' - ' + data.sDataObject.type);
                     }
@@ -88,14 +96,16 @@
             });
             $('#revision').submit(function(){
                 $.ajax({
-                    url: '/rest/download',
+                    url: host+'/rest/download',
                     data: 'roid='+$(this.roids).val()+'&serializerName=ThreeJs&sync=true&showOwn=true',
+                    xhrFields: { withCredentials: true},
                     success: function(data) {
                         viewer.clearModel();
                         $.ajax({
-                            url: '/rest/getDownloadData',
+                            url: host+'/rest/getDownloadData',
                             dataType: 'json',
                             data: 'actionId=' + data,
+                            xhrFields: { withCredentials: true},
                             success: function(model) {
                                 viewer.loadSerializedModel(Base64.decode(model.sCheckoutResult.file));
                             }
@@ -117,6 +127,7 @@
 </form>
 </div>
 <div id="viewerContainer"></div>
+<p id="errors"></p>
 <p class="boxed">
     selected: <span id="selection">nothing</span></p>
 </body>

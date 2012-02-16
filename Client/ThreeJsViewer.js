@@ -51,23 +51,18 @@ function ThreeJsViewer(){
         this.onclick = function(){};
     };
 
-    this.loadModel = function(modelUrl){
-        var geometryLoader = new THREE.JSONLoader(true);
+    this.callback = function(partId) { return function(geometry) {
+        var material = new THREE.MeshPhongMaterial({ color: this.UNSELECTED_COLOR });
+        var mesh = new THREE.Mesh(geometry, material);
+        mesh.doubleSided = false;
+        this.root.add(mesh);
+        this.meshes[mesh.geometry.id] = partId;
+    }.bind(this); }.bind(this);
 
-        var callback = function(partId) { return function(geometry) {
-            var material = new THREE.MeshPhongMaterial({ color: this.UNSELECTED_COLOR });
-            var mesh = new THREE.Mesh(geometry, material);
-            mesh.doubleSided = false;
-            this.root.add(mesh);
-            this.meshes[mesh.geometry.id] = partId;
-        }.bind(this); }.bind(this);
-
-        var texture_path = geometryLoader.extractUrlbase(modelUrl);
-
-        var createModel = function(jsonObject, dummy, texturePath){ // callback will be ignored, curried on the fly
+    this.createModel = function(jsonObject, geometryModelCreator, texture_path){ // callback will be curried on the fly
             $.each(jsonObject, function(index, modelPart){
-                geometryLoader.createModel( modelPart.geometry, callback(modelPart.id), texture_path );
-            });
+                geometryModelCreator( modelPart.geometry, this.callback(modelPart.id), texture_path );
+            }.bind(this));
             var bb = this.computeBoundingBox();
             var ext = {x: bb.x[1] - bb.x[0], y: bb.y[1] - bb.y[0], z: bb.z[1] - bb.z[0]};
             // center mesh
@@ -80,12 +75,23 @@ function ThreeJsViewer(){
             // TODO: adjust clipping
         }.bind(this);
 
+    this.loadSerializedModel = function(serializedModel){
+        var geometryLoader = new THREE.JSONLoader(true);
+        var model = JSON.parse( serializedModel );
         geometryLoader.onLoadStart();
-        geometryLoader.loadAjaxJSON({createModel: createModel, onLoadComplete: geometryLoader.onLoadComplete}, modelUrl, {}, texture_path);
+        this.createModel(model, geometryLoader.createModel.bind(geometryLoader), 'localhost');
+        geometryLoader.onLoadComplete();
+    }
 
-    };
+    this.loadModel = function(modelUrl){
+        var geometryLoader = new THREE.JSONLoader(true);
+        var texture_path = geometryLoader.extractUrlbase(modelUrl);
+        geometryLoader.onLoadStart();
+        geometryLoader.loadAjaxJSON({createModel: this.createModel, onLoadComplete: geometryLoader.onLoadComplete}, modelUrl, geometryLoader.createModel.bind(geometryLoader), texture_path);
+    }.bind(this);
+
     this.clearModel = function(){
-        this.scene.removeChild(this.root);
+        this.scene.remove(this.root);
         this.root = new THREE.Object3D();
         this.scene.add(this.root);
         this.meshes = {};
