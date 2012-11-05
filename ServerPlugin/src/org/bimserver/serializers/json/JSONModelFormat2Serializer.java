@@ -6,15 +6,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.bimserver.emf.IdEObject;
-import org.bimserver.models.ifc2x3.IfcColumn;
-import org.bimserver.models.ifc2x3.IfcDoor;
-import org.bimserver.models.ifc2x3.IfcOpeningElement;
-import org.bimserver.models.ifc2x3.IfcRoot;
-import org.bimserver.models.ifc2x3.IfcSlab;
-import org.bimserver.models.ifc2x3.IfcWall;
-import org.bimserver.models.ifc2x3.IfcWallStandardCase;
-import org.bimserver.models.ifc2x3.IfcWindow;
-import org.bimserver.plugins.PluginException;
+import org.bimserver.models.ifc2x3tc1.IfcColumn;
+import org.bimserver.models.ifc2x3tc1.IfcDoor;
+import org.bimserver.models.ifc2x3tc1.IfcRoot;
+import org.bimserver.models.ifc2x3tc1.IfcSlab;
+import org.bimserver.models.ifc2x3tc1.IfcWall;
+import org.bimserver.models.ifc2x3tc1.IfcWallStandardCase;
+import org.bimserver.models.ifc2x3tc1.IfcWindow;
 import org.bimserver.plugins.PluginManager;
 import org.bimserver.plugins.ifcengine.IfcEngine;
 import org.bimserver.plugins.ifcengine.IfcEngineException;
@@ -40,7 +38,8 @@ public class JSONModelFormat2Serializer extends EmfSerializer {
 	public void init(IfcModelInterface model, ProjectInfo projectInfo, PluginManager pluginManager, IfcEngine ifcEngine) throws SerializerException {
 		super.init(model, projectInfo, pluginManager, ifcEngine);
 		try {
-			EmfSerializer serializer = getPluginManager().requireIfcStepSerializer();
+			ifcEngine.init();
+            EmfSerializer serializer = getPluginManager().requireIfcStepSerializer();
 			serializer.init(model, getProjectInfo(), getPluginManager(), ifcEngine);
 			ifcEngineModel = ifcEngine.openModel(serializer.getBytes());
 			ifcEngineModel.setPostProcessing(true);

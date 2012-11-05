@@ -1,6 +1,5 @@
 package org.bimserver.serializers.json;
 
-import org.bimserver.models.ifc2x3.IfcElement;
 
 
 public class SetGeometryResult {
