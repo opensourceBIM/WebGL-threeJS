@@ -6,7 +6,7 @@ ThreeJs viewer consists of a server side part (serializer plugin) and a clientsi
 How to deploy the server side part
 ==================================
 
-In order to add the plugin to your BimServer instance, just grab the plugin jar file from downloads and drop it into the BimServer plugin folder.
+In order to add the plugin to your BimServer instance, just grab the plugin jar file from downloads and drop it into the BimServer plugin folder. Make sure to use the plugin version matching your BimServer version (1.1beta -> 0.1, 1.1final -> 0.2).
 
 If you want to develop the serializer, do the following:
 
@@ -14,7 +14,7 @@ If you want to develop the serializer, do the following:
 
 2. create a new project (Eclipse) or module (other IDEs) and checkout the ServerPlugin
 
-3. Add the following line to org.bimserver.LocalDePluginLoader.java:
+3. Add the following line to org.bimserver.LocalDevPluginLoader.java:
 
         pluginManager.loadPluginsFromEclipseProject(new File("../JsonModelFormat2Serializer"));
 
