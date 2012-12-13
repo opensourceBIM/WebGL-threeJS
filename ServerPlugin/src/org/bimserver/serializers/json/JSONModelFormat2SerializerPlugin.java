@@ -1,5 +1,6 @@
 package org.bimserver.serializers.json;
 
+import org.bimserver.models.store.ObjectDefinition;
 import org.bimserver.plugins.Plugin;
 import org.bimserver.plugins.PluginException;
 import org.bimserver.plugins.PluginManager;
@@ -21,27 +22,37 @@ public class JSONModelFormat2SerializerPlugin implements SerializerPlugin {
 		return new JSONModelFormat2Serializer();
 	}
 
-	@Override
+    @Override
+    public boolean needsGeometry() {
+        return true;
+    }
+
+    @Override
 	public String getDescription() {
 		return "JSONModelFormat2Serializer"; // TODO: better names and descriptions
 	}
-	
-	@Override
+
+    @Override
 	public String getVersion() {
 		return "0.1";
 	}
 
-	@Override
+    @Override
+    public ObjectDefinition getSettingsDefinition() {
+        return null; // TODO: ???
+    }
+
+    @Override
 	public void init(PluginManager pluginManager) throws PluginException {
 		pluginManager.requireSchemaDefinition();
 		pluginManager.requireIfcEngine();
 		initialized = true;
 	}
 
-	@Override
-	public String getDefaultSerializerName() {
-		return "ThreeJs";
-	}
+    @Override
+    public String getDefaultName() {
+        return "ThreeJs";
+    }
 
 	@Override
 	public String getDefaultContentType() {

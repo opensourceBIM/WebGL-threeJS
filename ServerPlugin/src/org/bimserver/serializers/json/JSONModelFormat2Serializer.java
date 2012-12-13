@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.bimserver.emf.IdEObject;
+import org.bimserver.emf.IfcModelInterface;
 import org.bimserver.models.ifc2x3tc1.IfcColumn;
 import org.bimserver.models.ifc2x3tc1.IfcDoor;
 import org.bimserver.models.ifc2x3tc1.IfcRoot;
@@ -14,15 +15,10 @@ import org.bimserver.models.ifc2x3tc1.IfcWall;
 import org.bimserver.models.ifc2x3tc1.IfcWallStandardCase;
 import org.bimserver.models.ifc2x3tc1.IfcWindow;
 import org.bimserver.plugins.PluginManager;
-import org.bimserver.plugins.ifcengine.IfcEngine;
-import org.bimserver.plugins.ifcengine.IfcEngineException;
-import org.bimserver.plugins.ifcengine.IfcEngineGeometry;
-import org.bimserver.plugins.ifcengine.IfcEngineInstance;
-import org.bimserver.plugins.ifcengine.IfcEngineInstanceVisualisationProperties;
-import org.bimserver.plugins.ifcengine.IfcEngineModel;
+import org.bimserver.plugins.ifcengine.*;
 import org.bimserver.plugins.serializers.EmfSerializer;
-import org.bimserver.plugins.serializers.IfcModelInterface;
 import org.bimserver.plugins.serializers.ProjectInfo;
+import org.bimserver.plugins.serializers.Serializer;
 import org.bimserver.plugins.serializers.SerializerException;
 import org.eclipse.emf.ecore.EObject;
 import org.slf4j.Logger;
@@ -35,12 +31,12 @@ public class JSONModelFormat2Serializer extends EmfSerializer {
 	private IfcEngineModel ifcEngineModel;
 	private IfcEngineGeometry geometry;
 
-	public void init(IfcModelInterface model, ProjectInfo projectInfo, PluginManager pluginManager, IfcEngine ifcEngine) throws SerializerException {
-		super.init(model, projectInfo, pluginManager, ifcEngine);
+	public void init(IfcModelInterface model, ProjectInfo projectInfo, PluginManager pluginManager, IfcEnginePlugin ifcEnginPlugin, boolean oids) throws SerializerException {
+		super.init(model, projectInfo, pluginManager, ifcEnginPlugin, false);
 		try {
-			ifcEngine.init();
-            EmfSerializer serializer = getPluginManager().requireIfcStepSerializer();
-			serializer.init(model, getProjectInfo(), getPluginManager(), ifcEngine);
+			IfcEngine ifcEngine = ifcEnginPlugin.createIfcEngine();
+            Serializer serializer = getPluginManager().requireIfcStepSerializer();
+			serializer.init(model, getProjectInfo(), getPluginManager(), ifcEnginPlugin, false);
 			ifcEngineModel = ifcEngine.openModel(serializer.getBytes());
 			ifcEngineModel.setPostProcessing(true);
 			geometry = ifcEngineModel.finalizeModelling(ifcEngineModel.initializeModelling());
@@ -50,7 +46,7 @@ public class JSONModelFormat2Serializer extends EmfSerializer {
 	}
 
 	@Override
-	protected void reset() {
+    public void reset() {
 		setMode(Mode.BODY);
 	}
 
