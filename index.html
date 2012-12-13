@@ -17,56 +17,41 @@
       <header>
         <h1>Webgl-threejs</h1>
         <p>Result of BIM codesprint 2011</p>
-
-        <p class="view"><a href="https://github.com/hlg/WebGL-threeJS">View the Project on GitHub <small>hlg/WebGL-threeJS</small></a></p>
-
-
+        <p class="view"><a href="https://github.com/bimserver/WebGL-threeJS">View the Project on GitHub <small>hlg/WebGL-threeJS</small></a></p>
         <ul>
-          <li><a href="https://github.com/hlg/WebGL-threeJS/zipball/master">Download <strong>ZIP File</strong></a></li>
-          <li><a href="https://github.com/hlg/WebGL-threeJS/tarball/master">Download <strong>TAR Ball</strong></a></li>
-          <li><a href="https://github.com/hlg/WebGL-threeJS">View On <strong>GitHub</strong></a></li>
+          <li><a href="https://github.com/bimserver/WebGL-threeJS/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/bimserver/WebGL-threeJS/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/bimserver/WebGL-threeJS">View On <strong>GitHub</strong></a></li>
         </ul>
       </header>
       <section>
-        <p>This project started at openBIMweek 2011. 
-Now maintained by the community.</p>
+        <p>This project started at openBIMweek 2011. Now maintained by the community.</p>
+		<p>ThreeJs viewer consists of a server side part (serializer plugin) and a clientside part (ThreeJs based javascript scenegraph).</p>
+		<h1>How to deploy the server side part</h1>
+		<h2>Use plugin binaries</h2>
+		<p>In order to add the plugin to your BimServer instance, just grab the plugin jar file from the list below and drop it into the BimServer plugin folder. Make sure to use the plugin version matching your BimServer version.</p>
+		<ul>
+			<li><a href="threejs-serializer-0.2.jar">threejs-serializer-0.2.jar</a> — BimServer 1.1.0 serializer plugin for three.js viewer (works with 1.1 final)</li>
+			<li><a href="threejs-serializer-0.1.jar">threejs-serializer-0.1.jar</a> — BimServer serializer plugin for three.js viewer (works with 1.1 beta)</li>
+		</ul>
+		<h2>Plugin development</h2>
+		<ol>
+			<li><p>checkout the BimServer source code and setup your IDE for BimServer development, e.g. for Eclipse as <a href="http://code.google.com/p/bimserver/wiki/Eclipse">explained here</a></p></li>
+			<li><p>create a new project (Eclipse) or module (other IDEs) and checkout the ServerPlugin</p></li>
+			<li><p>Add the following line to org.bimserver.LocalDevPluginLoader.java:</p>
+				<pre><code>pluginManager.loadPluginsFromEclipseProject(new File("../JsonModelFormat2Serializer"));</code></pre>
+			</li>
+		</ol>
+		<p>The plugin will now be visible in the bimserver webinterface and you can download files on "ThreeJs" json format to show in the ThreeJs client.</p>
 
-<p>ThreeJs viewer consists of a server side part (serializer plugin) and a clientside part (ThreeJs based javascript scenegraph).</p>
-
-<h1>How to deploy the server side part</h1>
-
-<h2>Use plugin binaries</h2>
-
-<p>In order to add the plugin to your BimServer instance, just grab the plugin jar file from the list below and drop it into the BimServer plugin folder. Make sure to use the plugin version matching your BimServer version.</p>
-
-<ul>
-<li>
-<a href="threejs-serializer-0.2.jar">threejs-serializer-0.2.jar</a> — BimServer 1.1.0 serializer plugin for three.js viewer (works with 1.1 final)</li>
-<li>
-<a href="threejs-serializer-0.1.jar">threejs-serializer-0.1.jar</a> — BimServer serializer plugin for three.js viewer (works with 1.1 beta)</li>
-</ul><h2>Plugin development</h2>
-
-<ol>
-<li><p>checkout the BimServer source code and setup your IDE for BimServer development, e.g. for Eclipse as <a href="http://code.google.com/p/bimserver/wiki/Eclipse">explained here</a></p></li>
-<li><p>create a new project (Eclipse) or module (other IDEs) and checkout the ServerPlugin</p></li>
-<li>
-<p>Add the following line to org.bimserver.LocalDevPluginLoader.java:</p>
-
-<pre><code>pluginManager.loadPluginsFromEclipseProject(new File("../JsonModelFormat2Serializer"));
-</code></pre>
-</li>
-</ol><p>The plugin will now be visible in the bimserver webinterface and you can download files on "ThreeJs" json format to show in the ThreeJs client.</p>
-
-<h1>How to run the client side part</h1>
-
-<p>todo</p>
+		<h1>How to run the client side part</h1>
+		<p>todo</p>
       </section>
       <footer>
-        <p>This project is maintained by <a href="https://github.com/hlg">hlg</a></p>
+        <p>This project is maintained by <a href="https://github.com/bimserver">hlg</a></p>
         <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
       </footer>
     </div>
-    <script src="javascripts/scale.fix.js"></script>
-    
+    <script src="javascripts/scale.fix.js"></script>    
   </body>
 </html>
