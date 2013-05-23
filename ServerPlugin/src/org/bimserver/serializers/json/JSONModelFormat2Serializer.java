@@ -5,15 +5,8 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.bimserver.emf.IdEObject;
 import org.bimserver.emf.IfcModelInterface;
-import org.bimserver.models.ifc2x3tc1.IfcColumn;
-import org.bimserver.models.ifc2x3tc1.IfcDoor;
-import org.bimserver.models.ifc2x3tc1.IfcRoot;
-import org.bimserver.models.ifc2x3tc1.IfcSlab;
-import org.bimserver.models.ifc2x3tc1.IfcWall;
-import org.bimserver.models.ifc2x3tc1.IfcWallStandardCase;
-import org.bimserver.models.ifc2x3tc1.IfcWindow;
+import org.bimserver.models.ifc2x3tc1.*;
 import org.bimserver.plugins.PluginManager;
 import org.bimserver.plugins.ifcengine.*;
 import org.bimserver.plugins.serializers.EmfSerializer;
@@ -35,8 +28,9 @@ public class JSONModelFormat2Serializer extends EmfSerializer {
 		super.init(model, projectInfo, pluginManager, ifcEnginPlugin, false);
 		try {
 			IfcEngine ifcEngine = ifcEnginPlugin.createIfcEngine();
+            ifcEngine.init();
             Serializer serializer = getPluginManager().requireIfcStepSerializer();
-			serializer.init(model, getProjectInfo(), getPluginManager(), ifcEnginPlugin, false);
+			serializer.init(model, getProjectInfo(), getPluginManager(), ifcEnginPlugin, true);
 			ifcEngineModel = ifcEngine.openModel(serializer.getBytes());
 			ifcEngineModel.setPostProcessing(true);
 			geometry = ifcEngineModel.finalizeModelling(ifcEngineModel.initializeModelling());
@@ -129,7 +123,7 @@ public class JSONModelFormat2Serializer extends EmfSerializer {
 			boolean first = true;
 			for (Class<? extends EObject> eClass : eClasses) {
 				for (Object object : model.getAll(eClass)) {
-					IfcRoot ifcRoot = (IfcRoot) object;
+                    IfcProduct ifcRoot = (IfcProduct) object;
 					SetGeometryResult geometry = getGeometry(ifcRoot);
 					if (geometry != null) {
 						out.println(first ? "  {" : " ,{");
@@ -146,11 +140,11 @@ public class JSONModelFormat2Serializer extends EmfSerializer {
 		}
 	}
 
-	private SetGeometryResult getGeometry(IdEObject ifcRootObject) throws SerializerException, IfcEngineException {
+	private SetGeometryResult getGeometry(IfcProduct ifcRootObject) throws SerializerException, IfcEngineException {
 		BinaryIndexBuffer binaryIndexBuffer = new BinaryIndexBuffer();
 		BinaryVertexBuffer binaryVertexBuffer = new BinaryVertexBuffer();
 		int nrIndices = 0;
-		IfcEngineInstance instance = ifcEngineModel.getInstanceFromExpressId((int)ifcRootObject.getOid());
+		IfcEngineInstance instance = ifcEngineModel.getInstanceFromExpressId(ifcRootObject.getExpressId());
 		IfcEngineInstanceVisualisationProperties visualisationProperties = instance.getVisualisationProperties();
 		for (int i = visualisationProperties.getStartIndex(); i < visualisationProperties.getPrimitiveCount() * 3 + visualisationProperties.getStartIndex(); i += 3) {
 			binaryIndexBuffer.addIndex(geometry.getIndex(i));

@@ -1,17 +1,10 @@
 package org.bimserver.serializers.json;
 
 import org.bimserver.models.store.ObjectDefinition;
-import org.bimserver.plugins.Plugin;
 import org.bimserver.plugins.PluginException;
 import org.bimserver.plugins.PluginManager;
-import org.bimserver.plugins.ifcengine.IfcEnginePlugin;
-import org.bimserver.plugins.schema.SchemaPlugin;
 import org.bimserver.plugins.serializers.EmfSerializer;
 import org.bimserver.plugins.serializers.SerializerPlugin;
-
-import java.util.HashSet;
-import java.util.Set;
-
 
 public class JSONModelFormat2SerializerPlugin implements SerializerPlugin {
 
