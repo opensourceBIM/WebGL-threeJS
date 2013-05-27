@@ -1,17 +1,18 @@
 package org.bimserver.serializers.json;
 
 import org.bimserver.models.store.ObjectDefinition;
+import org.bimserver.plugins.PluginConfiguration;
 import org.bimserver.plugins.PluginException;
 import org.bimserver.plugins.PluginManager;
-import org.bimserver.plugins.serializers.EmfSerializer;
-import org.bimserver.plugins.serializers.SerializerPlugin;
+import org.bimserver.plugins.serializers.AbstractSerializerPlugin;
+import org.bimserver.plugins.serializers.Serializer;
 
-public class JSONModelFormat2SerializerPlugin implements SerializerPlugin {
+public class JSONModelFormat2SerializerPlugin extends AbstractSerializerPlugin {
 
 	private boolean initialized = false;
 
 	@Override
-	public EmfSerializer createSerializer() {
+	public Serializer createSerializer(PluginConfiguration pluginConfiguration) {
 		return new JSONModelFormat2Serializer();
 	}
 
@@ -32,30 +33,29 @@ public class JSONModelFormat2SerializerPlugin implements SerializerPlugin {
 
     @Override
     public ObjectDefinition getSettingsDefinition() {
-        return null; // TODO: ???
+        return super.getSettingsDefinition();
     }
 
     @Override
 	public void init(PluginManager pluginManager) throws PluginException {
 		pluginManager.requireSchemaDefinition();
-		pluginManager.requireIfcEngine();
 		initialized = true;
 	}
 
     @Override
+    public String getDefaultContentType() {
+    	return "application/json";
+    }
+    
+    @Override
+    public String getDefaultExtension() {
+    	return "json";
+    }
+    
+    @Override
     public String getDefaultName() {
         return "ThreeJs";
     }
-
-	@Override
-	public String getDefaultContentType() {
-		return "application/json";
-	}
-
-	@Override
-	public String getDefaultExtension() {
-		return "json";
-	}
 
 	@Override
 	public boolean isInitialized() {
