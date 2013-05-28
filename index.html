@@ -31,22 +31,63 @@
 		<h2>Use plugin binaries</h2>
 		<p>In order to add the serzializer plugin to your BimServer instance, just grab the plugin jar file from the list below and drop it into the BimServer plugin folder. Make sure to use the plugin version matching your BimServer version.</p>
 		<table>
+            <tr><td><a href="threejs-serializer-0.4.jar">threejs-serializer-0.4.jar</a></td><td>Serializer plugin for Bimserver 1.2 RC7</td></tr>
 			<tr><td><a href="threejs-serializer-0.3.jar">threejs-serializer-0.3.jar</a></td><td>Serializer plugin for Bimserver 1.2 beta</td></tr>
 			<tr><td><a href="threejs-serializer-0.2.jar">threejs-serializer-0.2.jar</a></td><td>Serializer plugin for Bimserver 1.1 final</td></tr>
 			<tr><td><a href="threejs-serializer-0.1.jar">threejs-serializer-0.1.jar</a></td><td>Serializer plugin for Bimserver 1.1 beta</td></tr>
 		</table>
-		<h2>Plugin development</h2>
+
+		<h2>Heavyweight plugin development</h2>
+        <p>Use this method, if you need the full-blown Bimserver under your fingertips for debugging.</p>
 		<ol>
 			<li><p>checkout the BimServer source code and setup your IDE for BimServer development, e.g. for Eclipse as <a href="http://code.google.com/p/bimserver/wiki/Eclipse">explained here</a></p></li>
 			<li><p>create a new project (Eclipse) or module (other IDEs) and checkout the ServerPlugin</p></li>
-			<li><p>Add the following line to org.bimserver.LocalDevPluginLoader.java:</p>
-				<pre><code>pluginManager.loadPluginsFromEclipseProject(new File("../JsonModelFormat2Serializer"));</code></pre>
+			<li><p>Add the following line to org.bimserver.LocalDevPluginLoader.java: <code>pluginManager.loadPluginsFromEclipseProject(new File("../JsonModelFormat2Serializer"));</code></p>
 			</li>
 		</ol>
-		<p>The plugin will now be visible in the bimserver webinterface and you can download files on "ThreeJs" json format to show in the ThreeJs client.</p>
+
+        <h2>Lightweight plugin development</h2>
+        <p>Use this method, if you don't want to poke around the full Bimserver sources and are brave enough to mess around with the Bimserver starter.</p>
+        <ol>
+            <li>checkout the Plugin code only (no need for the Bimserver sources)</li>
+            <li>compile with debugging enabled and deploy to a binary Bimserver instance (drop in plugin directory)</li>
+            <li>use your favorite debugger for remote debugging</li>
+            <li>the JVM has to be started with remote debugging enabled. Depending on your debugger and settings the respective
+                options look similiar to this: <code>-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005</code>.
+                Because the Bimserver starter spawns another JVM for the actual Bimserver (including the plugin you want
+                to debug), you have to pass these options to the child JVM. You can do so by appending them to one of
+                the memory settings in the Bimserver starter form separated by a space, because there is no sanity check.
+                Alternatively run the Bimserver starter from the command line and copy the child JVM spawning command
+                which is printed there.</li>
+        </ol>
 
 		<h1>How to run the client side part</h1>
-		<p>todo</p>
+		<h2>Serve the web application</h2>
+        <p>Because the communication between client and server through the JSON API relies on CORS you have to serve the
+            client files from an origin different from the Bimserver location. For local development fire up a simple
+            Webserver exposing the client html and javascript files. Some options:</p>
+        <ul>
+            <li>With Python: <code>python&nbsp;-m&nbsp;SimpleHTTPServer&nbsp;&lt;port&gt;</code></li>
+            <li>With Groovy: there is a simple webserver in the core-examples
+                <code>groovy&nbsp;-l&nbsp;&lt;port&gt;&nbsp;SimpleWebServer.groovy</code></li>
+        </ul>
+
+        <h2>Watch models</h2>
+        <p>Open <code>index_served.html</code> and fill in the fields in the upper part in order to load models from the server.</p>
+        <p>The functionality is very simple at present:</p>
+          <ul>
+              <li>login/logout</li>
+              <li>list projects and revisions</li>
+              <li>load models</li>
+              <li>show GUID, name and object type for selected objects</li>
+        </ul>
+        <p>Embedding is not yet streamlined, you'd have to fiddle with the html/javascript on your own currently.</p>
+
+        <h2>Useful tools for developing and debugging</h2>
+         <ul>
+             <li><a href="http://curl.haxx.se/">Curl</a>: you may want to check the API calls and server responses without having the browser in tow</li>
+             <li><a href="https://addons.mozilla.org/de/firefox/addon/firebug/">Firebug</a> and friends</li>
+         </ul>
       </section>
       <footer>
         <p>This project is maintained by <a href="https://github.com/opensourceBIM">the Bimserver community</a></p>
