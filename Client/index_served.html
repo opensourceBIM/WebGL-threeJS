@@ -44,7 +44,7 @@
         var viewer;
         var token = null;
         $.ajaxSetup({
-            url: 'http://localhost:8082/jsonapi',
+            url: 'http://localhost:8082/json',
             type: 'POST',
             contentType: 'text/plain' // suppress preflight
         });
@@ -97,7 +97,7 @@
                     return;
                 }
                 $.ajax({
-                    data: JSON.stringify({token:token,request:{interface:'ServiceInterface',method:'getDataObjectByGuid',parameters:{roid:$('#roids').val(),guid:id}}}),
+                    data: JSON.stringify({token:token,request:{interface:'LowLevelInterface',method:'getDataObjectByGuid',parameters:{roid:$('#roids').val(),guid:id}}}),
                     success: function(res,s,req){
                         $('#selection').html(id + ' - ' + res.response.result.name + ' - ' + res.response.result.type);
                     }
@@ -110,7 +110,7 @@
             $('#revision').submit(function(){
                 var roid = $(this.roids).val();
                 if(roid!='null') $.ajax({
-                    data: JSON.stringify({token:token,request:{interface:'ServiceInterface',method:'getSerializerByName',parameters:{serializerName:'ThreeJs'}}}),
+                    data: JSON.stringify({token:token,request:{interface:'PluginInterface',method:'getSerializerByName',parameters:{serializerName:'ThreeJs'}}}),
                     success: function(res1,s1,req1){
                         if('result' in res1.response) $.ajax({
                             data: JSON.stringify({token:token,request:{interface:'ServiceInterface',method:'download',parameters:{serializerOid:res1.response.result.oid,sync:true, showOwn:true,roid:roid}}}),
@@ -131,7 +131,7 @@
                 var username = $(this.username).val();
                 var password = $(this.password).val();
                 $.ajax({
-                    data: JSON.stringify({request:{interface:'ServiceInterface',method:'login',parameters:{username:username,password:password}}}),
+                    data: JSON.stringify({request:{interface:'AuthInterface',method:'login',parameters:{username:username,password:password}}}),
                     success: function(response,status,request){
                         if('exception' in response.response)  $('#errors').text('Error: '+response.response.exception.message);
                         else {
@@ -147,7 +147,7 @@
             });
             $('#authenticated').submit(function(){
                 $.ajax({
-                    data: JSON.stringify({token:token,request:{interface:'ServiceInterface',method:'logout'}}),
+                    data: JSON.stringify({token:token,request:{interface:'AuthInterface',method:'logout'}}),
                     success: function(response,status,request){
                         if('exception' in response.response)  $('#errors').text('Error: '+response.response.exception.message);
                         else{
