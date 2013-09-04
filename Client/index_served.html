@@ -51,7 +51,7 @@
         function revisionUpdate(poid) {
             $('#roids option.added').remove();
             if(poid!='null') $.ajax({
-                data: JSON.stringify({token:token,request:{interface:'ServiceInterface',method:'getAllRevisionsOfProject',parameters:{poid:poid}}}),
+                data: JSON.stringify({token:token,request:{interface:'Bimsie1ServiceInterface',method:'getAllRevisionsOfProject',parameters:{poid:poid}}}),
                 success: function(response,status,request){
                     var select = $('#roids');
                     if('exception' in response.response)  $('#errors').text('Error: '+response.response.exception.message);
@@ -68,7 +68,7 @@
         function projectUpdate() {
             $('#poids option.added').remove();
             $.ajax({
-                data: JSON.stringify({token:token,request:{interface:'ServiceInterface',method:'getAllProjects',parameters:{onlyTopLevel:false}}}),
+                data: JSON.stringify({token:token,request:{interface:'Bimsie1ServiceInterface',method:'getAllProjects',parameters:{onlyTopLevel: false, onlyActive: true}}}),
                 success: function(response,status,request) {
                     var select = $('#poids');
                     if('exception' in response.response)  $('#errors').text('Error: '+response.response.exception.message);
@@ -97,7 +97,7 @@
                     return;
                 }
                 $.ajax({
-                    data: JSON.stringify({token:token,request:{interface:'LowLevelInterface',method:'getDataObjectByGuid',parameters:{roid:$('#roids').val(),guid:id}}}),
+                    data: JSON.stringify({token:token,request:{interface:'Bimsie1LowLevelInterface',method:'getDataObjectByGuid',parameters:{roid:$('#roids').val(),guid:id}}}),
                     success: function(res,s,req){
                         $('#selection').html(id + ' - ' + res.response.result.name + ' - ' + res.response.result.type);
                     }
@@ -110,13 +110,13 @@
             $('#revision').submit(function(){
                 var roid = $(this.roids).val();
                 if(roid!='null') $.ajax({
-                    data: JSON.stringify({token:token,request:{interface:'PluginInterface',method:'getSerializerByName',parameters:{serializerName:'ThreeJs'}}}),
+                    data: JSON.stringify({token:token,request:{interface:'Bimsie1ServiceInterface',method:'getSerializerByName',parameters:{serializerName:'ThreeJs'}}}),
                     success: function(res1,s1,req1){
                         if('result' in res1.response) $.ajax({
-                            data: JSON.stringify({token:token,request:{interface:'ServiceInterface',method:'download',parameters:{serializerOid:res1.response.result.oid,sync:true, showOwn:true,roid:roid}}}),
+                            data: JSON.stringify({token:token,request:{interface:'Bimsie1ServiceInterface',method:'download',parameters:{serializerOid:res1.response.result.oid,sync:true, showOwn:true,roid:roid}}}),
                             success: function(res2,s2,req2){
                                 if('result' in res2.response) $.ajax({
-                                    data: JSON.stringify({token:token,request:{interface:'ServiceInterface',method:'getDownloadData',parameters:{actionId:res2.response.result}}}),
+                                    data: JSON.stringify({token:token,request:{interface:'Bimsie1ServiceInterface',method:'getDownloadData',parameters:{actionId:res2.response.result}}}),
                                     success: function(res3,s3,req3){
                                         viewer.loadSerializedModel(Base64.decode(res3.response.result.file));
                                     }
@@ -131,7 +131,7 @@
                 var username = $(this.username).val();
                 var password = $(this.password).val();
                 $.ajax({
-                    data: JSON.stringify({request:{interface:'AuthInterface',method:'login',parameters:{username:username,password:password}}}),
+                    data: JSON.stringify({request:{interface:'Bimsie1AuthInterface',method:'login',parameters:{username:username,password:password}}}),
                     success: function(response,status,request){
                         if('exception' in response.response)  $('#errors').text('Error: '+response.response.exception.message);
                         else {
@@ -147,7 +147,7 @@
             });
             $('#authenticated').submit(function(){
                 $.ajax({
-                    data: JSON.stringify({token:token,request:{interface:'AuthInterface',method:'logout'}}),
+                    data: JSON.stringify({token:token,request:{interface:'Bimsie1AuthInterface',method:'logout'}}),
                     success: function(response,status,request){
                         if('exception' in response.response)  $('#errors').text('Error: '+response.response.exception.message);
                         else{
