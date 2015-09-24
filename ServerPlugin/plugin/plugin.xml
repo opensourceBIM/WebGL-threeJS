@@ -2,6 +2,7 @@
 <PluginDescriptor>
 	<PluginImplementation>
 		<interfaceClass>org.bimserver.plugins.serializers.SerializerPlugin</interfaceClass>
-		<implementationClass>org.bimserver.serializers.json.JSONModelFormat2SerializerPlugin</implementationClass>
+		<implementationClass>org.bimserver.serializers.json.ThreeJsSerializerPlugin</implementationClass>
+		<enabled>true</enabled>
 	</PluginImplementation>
 </PluginDescriptor>

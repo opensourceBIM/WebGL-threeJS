@@ -1,5 +1,6 @@
 package org.bimserver.serializers.json;
 
+import org.bimserver.emf.Schema;
 import org.bimserver.models.store.ObjectDefinition;
 import org.bimserver.plugins.PluginConfiguration;
 import org.bimserver.plugins.PluginException;
@@ -7,13 +8,15 @@ import org.bimserver.plugins.PluginManager;
 import org.bimserver.plugins.serializers.AbstractSerializerPlugin;
 import org.bimserver.plugins.serializers.Serializer;
 
-public class JSONModelFormat2SerializerPlugin extends AbstractSerializerPlugin {
+import java.util.Set;
+
+public class ThreeJsSerializerPlugin extends AbstractSerializerPlugin {
 
 	private boolean initialized = false;
 
 	@Override
 	public Serializer createSerializer(PluginConfiguration pluginConfiguration) {
-		return new JSONModelFormat2Serializer();
+		return new ThreeJsSerializer();
 	}
 
     @Override
@@ -22,8 +25,13 @@ public class JSONModelFormat2SerializerPlugin extends AbstractSerializerPlugin {
     }
 
     @Override
+    public Set<Schema> getSupportedSchemas() {
+        return Schema.asSet(Schema.IFC2X3TC1, Schema.IFC4);
+    }
+
+    @Override
 	public String getDescription() {
-		return "JSONModelFormat2Serializer"; // TODO: better names and descriptions
+		return "serializer for three.js json geometry";
 	}
 
     @Override
@@ -38,7 +46,6 @@ public class JSONModelFormat2SerializerPlugin extends AbstractSerializerPlugin {
 
     @Override
 	public void init(PluginManager pluginManager) throws PluginException {
-		pluginManager.requireSchemaDefinition();
 		initialized = true;
 	}
 
