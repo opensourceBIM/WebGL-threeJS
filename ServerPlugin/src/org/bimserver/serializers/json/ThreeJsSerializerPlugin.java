@@ -36,7 +36,7 @@ public class ThreeJsSerializerPlugin extends AbstractSerializerPlugin {
 
     @Override
 	public String getVersion() {
-		return "0.1";
+		return "0.6";
 	}
 
     @Override

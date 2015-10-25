@@ -4,8 +4,7 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import org.bimserver.emf.IdEObject;
 import org.bimserver.emf.IfcModelInterface;
@@ -46,10 +45,21 @@ public class ThreeJsSerializer extends EmfSerializer {
 	protected boolean write(OutputStream outputStream, ProgressReporter progressReporter) {
 		if (getMode() == Mode.BODY) {
 			out = new PrintWriter(outputStream);
-			out.println("[");
-			writeGeometries();
-			out.println();
-			out.println("]");
+			out.println("{");
+			out.println("  \"metadata\" : { \"formatVersion\" : 4.3, \"type\" : \"object\", \"generator\" : \"BIMserver three.js serializer\"  }, ");
+			out.println("  \"geometries\" : [");
+			Map<String, GeometryInfo> geometryData = collectGeometryData();
+			writeGeometries(geometryData);
+			out.println("  ]");
+			out.println("  \"object\" : {");
+			out.println("  \"uuid\" : \"root\",");
+			out.println("  \"type\" : \"Scene\",");
+			out.println("  \"matrix\" : [1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1],");
+			out.println("  \"children\" : [");
+			writeObjects(geometryData);
+			out.println("  ]");
+			out.println("  }");
+			out.println("}");
 			out.flush();
 
 			setMode(Mode.FINISHED);
@@ -59,13 +69,11 @@ public class ThreeJsSerializer extends EmfSerializer {
 		}
 	}
 
-	private void writeGeometry(GeometryData geometryData, IfcRoot ifcRoot) {
-		out.println("  \"id\" : \"" + ifcRoot.getGlobalId() + "\", ");
-		out.println("  \"type\" : \"" + ifcRoot.eClass().getName().toUpperCase() + "\", ");
-		out.println("  \"geometry\" : {");
-		out.println("   \"metadata\" : { \"formatVersion\" : 3 }, ");
-		out.println("	\"materials\": [],");
-		out.print("	\"vertices\": [ ");
+	private void writeGeometry(GeometryData geometryData) {
+		out.println("  \"uuid\" : \"" + geometryData.getOid() + "\", ");
+		out.println("  \"type\" : \"BufferGeometry\", ");
+		out.println("  \"data\" : {");
+		out.print("	   \"vertices\": [ ");
 
 		List<Float> vertices = getFloatList(geometryData.getVertices());
 		if (vertices != null && vertices.size() > 0) {
@@ -76,7 +84,7 @@ public class ThreeJsSerializer extends EmfSerializer {
 			}
 		}
 
-		out.println("	], ");
+		out.println("], ");
 		out.print("	\"normals\":  [");
 
 		List<Float> normals = getFloatList(geometryData.getNormals());
@@ -88,10 +96,9 @@ public class ThreeJsSerializer extends EmfSerializer {
 			}
 		}
 
-		out.println("	],");
-		out.println("	\"colors\":   [ ],");
-		out.println("	\"uvs\":	  [ ],");
-		out.print("	\"faces\": [ ");
+		out.println("],");
+		out.println("    \"uvs\": [ ],");
+		out.print("	   \"faces\": [ ");
 
 		List<Integer> indices = getIntegerList(geometryData.getIndices());
 		if (indices != null && indices.size() > 0) {
@@ -103,33 +110,70 @@ public class ThreeJsSerializer extends EmfSerializer {
 			}
 		}
 
-		out.println(" ]");
-		out.println("	 }");
-		out.println();
+		out.println("]");
 	}
 
 	@SuppressWarnings("unchecked")
-	private void writeGeometries() {
+	private Map<String, GeometryInfo> collectGeometryData() {
+		Map<String, GeometryInfo> geometryData = new HashMap<String, GeometryInfo>();
 		Class<IdEObject>[] eClasses = new Class[] {
 				IfcWall.class, IfcWindow.class, IfcDoor.class, IfcSlab.class, IfcColumn.class,
 				org.bimserver.models.ifc4.IfcWall.class,org.bimserver.models.ifc4.IfcWindow.class,
 				org.bimserver.models.ifc4.IfcDoor.class, org.bimserver.models.ifc4.IfcSlab.class,
 				org.bimserver.models.ifc4.IfcColumn.class
 		};
-
-		boolean first = true;
 		for (Class<? extends IdEObject> eClass : eClasses) {
-            for (IdEObject object : model.getAllWithSubTypes(eClass)) {
+			for (IdEObject object : model.getAllWithSubTypes(eClass)) {
 				IfcProduct ifcRoot = (IfcProduct) object;
-                GeometryInfo geometryInfo = ifcRoot.getGeometry();
-                if (geometryInfo != null) {
-                    out.println(first ? "  {" : " ,{");
-                    first = false;
-                    writeGeometry(geometryInfo.getData(), ifcRoot);
-                    out.print("  }");
-                }
+				GeometryInfo geometryInfo = ifcRoot.getGeometry();
+				if (geometryInfo != null) {
+					geometryData.put(ifcRoot.getGlobalId(), geometryInfo);
+				}
+			}
+		}
+		return geometryData;
+	}
+
+
+	private void writeGeometries(Map<String, GeometryInfo> geometryInfos) {
+		boolean first = true;
+		Set<Long> writtenGeometries = new HashSet<Long>();
+		for(GeometryInfo geometryInfo: geometryInfos.values()){
+			if(!writtenGeometries.contains(geometryInfo.getData().getOid())){
+				out.println(first ? "  {" : " ,{");
+				first = false;
+				writeGeometry(geometryInfo.getData());
+				out.print("  }");
+				writtenGeometries.add(geometryInfo.getData().getOid());
             }
         }
+		out.println();
+	}
+
+	private void writeObjects(Map<String, GeometryInfo> geometryInfos) {
+		boolean first = true;
+		for (Map.Entry<String, GeometryInfo> geometryEntry: geometryInfos.entrySet()) {
+			String guid = geometryEntry.getKey();
+			GeometryInfo geometryInfo = geometryEntry.getValue();
+			out.println(first ? "  {" : "  , {");
+			writeObject(guid, geometryInfo);
+			out.print("  }");
+			first = false;
+		}
+		out.println();
+	}
+
+	private void writeObject(String guid, GeometryInfo geometryInfo) {
+		out.println("  \"uuid\" : \"" + guid + "\", ");
+		out.println("  \"type\" : \"Mesh\", ");
+		out.println("  \"geometry\" : \"" + geometryInfo.getData().getOid() + "\", ");
+		out.print(  "  \"matrix\" : ");
+		boolean first = true;
+		for(int i: getIntegerList(geometryInfo.getTransformation())){
+			out.print(first ? "" : ",");
+			out.print(i);
+			first=false;
+		}
 	}
 
 	private List<Float> getFloatList(byte[] byteArray) {
