@@ -14,7 +14,6 @@ import org.bimserver.models.geometry.GeometryInfo;
 import org.bimserver.models.ifc2x3tc1.IfcColumn;
 import org.bimserver.models.ifc2x3tc1.IfcDoor;
 import org.bimserver.models.ifc2x3tc1.IfcProduct;
-import org.bimserver.models.ifc2x3tc1.IfcRoot;
 import org.bimserver.models.ifc2x3tc1.IfcSlab;
 import org.bimserver.models.ifc2x3tc1.IfcWall;
 import org.bimserver.models.ifc2x3tc1.IfcWindow;
@@ -50,7 +49,7 @@ public class ThreeJsSerializer extends EmfSerializer {
 			out.println("  \"geometries\" : [");
 			Map<String, GeometryInfo> geometryData = collectGeometryData();
 			writeGeometries(geometryData);
-			out.println("  ]");
+			out.println("  ],");
 			out.println("  \"object\" : {");
 			out.println("  \"uuid\" : \"root\",");
 			out.println("  \"type\" : \"Scene\",");
@@ -71,7 +70,7 @@ public class ThreeJsSerializer extends EmfSerializer {
 
 	private void writeGeometry(GeometryData geometryData) {
 		out.println("  \"uuid\" : \"" + geometryData.getOid() + "\", ");
-		out.println("  \"type\" : \"BufferGeometry\", ");
+		out.println("  \"type\" : \"Geometry\", ");
 		out.println("  \"data\" : {");
 		out.print("	   \"vertices\": [ ");
 
@@ -110,7 +109,7 @@ public class ThreeJsSerializer extends EmfSerializer {
 			}
 		}
 
-		out.println("]");
+		out.println("]}");
 	}
 
 	@SuppressWarnings("unchecked")
@@ -167,13 +166,14 @@ public class ThreeJsSerializer extends EmfSerializer {
 		out.println("  \"uuid\" : \"" + guid + "\", ");
 		out.println("  \"type\" : \"Mesh\", ");
 		out.println("  \"geometry\" : \"" + geometryInfo.getData().getOid() + "\", ");
-		out.print(  "  \"matrix\" : ");
+		out.print(  "  \"matrix\" : [");
 		boolean first = true;
-		for(int i: getIntegerList(geometryInfo.getTransformation())){
+		for(float i: getFloatList(geometryInfo.getTransformation())){
 			out.print(first ? "" : ",");
 			out.print(i);
 			first=false;
 		}
+		out.println("]");
 	}
 
 	private List<Float> getFloatList(byte[] byteArray) {
