@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PluginDescriptor>
-	<PluginImplementation>
+	<JavaPlugin>
 		<interfaceClass>org.bimserver.plugins.serializers.SerializerPlugin</interfaceClass>
 		<implementationClass>org.bimserver.serializers.json.ThreeJsSerializerPlugin</implementationClass>
+		<name>ThreeJSSerializer</name>
+		<description>ThreeJSSerializer</description>
 		<enabled>true</enabled>
-	</PluginImplementation>
+	</JavaPlugin>
 </PluginDescriptor>
