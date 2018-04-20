@@ -4,7 +4,12 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.bimserver.emf.IdEObject;
 import org.bimserver.emf.IfcModelInterface;
@@ -32,12 +37,7 @@ public class ThreeJsSerializer extends EmfSerializer {
 	private PrintWriter out;
 
 	public void init(IfcModelInterface model, ProjectInfo projectInfo, PluginManager pluginManager, RenderEnginePlugin renderEnginePlugin, PackageMetaData packageMetaData, boolean oids) throws SerializerException {
-		super.init(model, projectInfo, pluginManager, renderEnginePlugin, packageMetaData, false);
-	}
-
-	@Override
-    public void reset() {
-		setMode(Mode.BODY);
+		super.init(model, projectInfo, pluginManager, false);
 	}
 
 	@Override
