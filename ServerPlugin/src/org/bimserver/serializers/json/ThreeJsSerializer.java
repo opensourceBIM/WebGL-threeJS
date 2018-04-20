@@ -42,34 +42,24 @@ public class ThreeJsSerializer extends EmfSerializer {
 
 	@Override
 	protected boolean write(OutputStream outputStream, ProgressReporter progressReporter) {
-		if (getMode() == Mode.HEADER) {
-			setMode(Mode.BODY);
-			return true;
-		}
-		if (getMode() == Mode.BODY) {
-			out = new PrintWriter(outputStream);
-			out.println("{");
-			out.println("  \"metadata\" : { \"formatVersion\" : 4.3, \"type\" : \"object\", \"generator\" : \"BIMserver three.js serializer\"  }, ");
-			out.println("  \"geometries\" : [");
-			Map<String, GeometryInfo> geometryData = collectGeometryData();
-			writeGeometries(geometryData);
-			out.println("  ],");
-			out.println("  \"object\" : {");
-			out.println("  \"uuid\" : \"root\",");
-			out.println("  \"type\" : \"Scene\",");
-			out.println("  \"matrix\" : [1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1],");
-			out.println("  \"children\" : [");
-			writeObjects(geometryData);
-			out.println("  ]");
-			out.println("  }");
-			out.println("}");
-			out.flush();
-
-			setMode(Mode.FINISHED);
-			return true;
-		} else {
-			return false;
-		}
+		out = new PrintWriter(outputStream);
+		out.println("{");
+		out.println("  \"metadata\" : { \"formatVersion\" : 4.3, \"type\" : \"object\", \"generator\" : \"BIMserver three.js serializer\"  }, ");
+		out.println("  \"geometries\" : [");
+		Map<String, GeometryInfo> geometryData = collectGeometryData();
+		writeGeometries(geometryData);
+		out.println("  ],");
+		out.println("  \"object\" : {");
+		out.println("  \"uuid\" : \"root\",");
+		out.println("  \"type\" : \"Scene\",");
+		out.println("  \"matrix\" : [1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1],");
+		out.println("  \"children\" : [");
+		writeObjects(geometryData);
+		out.println("  ]");
+		out.println("  }");
+		out.println("}");
+		out.flush();
+		return false;
 	}
 
 	private void writeGeometry(GeometryData geometryData) {
