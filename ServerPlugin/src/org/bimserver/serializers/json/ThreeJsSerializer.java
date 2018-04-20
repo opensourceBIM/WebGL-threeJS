@@ -22,7 +22,7 @@ import org.bimserver.models.ifc2x3tc1.IfcProduct;
 import org.bimserver.models.ifc2x3tc1.IfcSlab;
 import org.bimserver.models.ifc2x3tc1.IfcWall;
 import org.bimserver.models.ifc2x3tc1.IfcWindow;
-import org.bimserver.plugins.PluginManager;
+import org.bimserver.plugins.PluginManagerInterface;
 import org.bimserver.plugins.renderengine.RenderEnginePlugin;
 import org.bimserver.plugins.serializers.EmfSerializer;
 import org.bimserver.plugins.serializers.ProgressReporter;
@@ -36,7 +36,7 @@ public class ThreeJsSerializer extends EmfSerializer {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ThreeJsSerializer.class);
 	private PrintWriter out;
 
-	public void init(IfcModelInterface model, ProjectInfo projectInfo, PluginManager pluginManager, RenderEnginePlugin renderEnginePlugin, PackageMetaData packageMetaData, boolean oids) throws SerializerException {
+	public void init(IfcModelInterface model, ProjectInfo projectInfo, PluginManagerInterface pluginManager, RenderEnginePlugin renderEnginePlugin, PackageMetaData packageMetaData, boolean oids) throws SerializerException {
 		super.init(model, projectInfo, pluginManager, false);
 	}
 
