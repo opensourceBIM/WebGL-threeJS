@@ -42,6 +42,10 @@ public class ThreeJsSerializer extends EmfSerializer {
 
 	@Override
 	protected boolean write(OutputStream outputStream, ProgressReporter progressReporter) {
+		if (getMode() == Mode.HEADER) {
+			setMode(Mode.BODY);
+			return true;
+		}
 		if (getMode() == Mode.BODY) {
 			out = new PrintWriter(outputStream);
 			out.println("{");
